@@ -126,6 +126,8 @@ ALGORITHM = "HS256"
 
 class ChatRequest(BaseModel):
     message: str
+    image_id: str | None = None
+    image_data: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -631,7 +633,7 @@ def chat(
 
 @app.post("/upload-image")
 async def upload_image(
-    file: UploadFile = File(...)
+    image: UploadFile = File(...)
 ):
 
     try:
@@ -646,7 +648,7 @@ async def upload_image(
             "image/webp"
         }
 
-        if file.content_type not in allowed_types:
+        if image.content_type not in allowed_types:
 
             return {
                 "success": False,
@@ -684,7 +686,7 @@ async def upload_image(
         # --------------------------------
 
         extension = os.path.splitext(
-            file.filename
+            image.filename
         )[1].lower()
 
 
@@ -702,7 +704,13 @@ async def upload_image(
         # Read uploaded image
         # --------------------------------
 
-        contents = await file.read()
+        contents = await image.read(5 * 1024 * 1024 + 1)
+
+        if len(contents) > 5 * 1024 * 1024:
+            return {
+                "success": False,
+                "message": "Image must be 5 MB or smaller."
+            }
 
 
         # --------------------------------
@@ -736,7 +744,7 @@ async def upload_image(
 
             "image_id": image_id,
 
-            "filename": file.filename,
+            "filename": image.filename,
 
             "message": (
                 "Photo uploaded and "

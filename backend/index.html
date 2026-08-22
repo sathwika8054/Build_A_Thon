@@ -1058,6 +1058,11 @@
                     if (!response.ok) throw new Error(data.detail || 'Upload failed');
                     selectedImageId = data.image_id;
                     uploadStatus.textContent = `${data.filename} uploaded`;
+                    appendMessage(
+                        'HealthGuard AI',
+                        `Photo analysis:\n${data.analysis || data.message}\n\nThis is educational information only and is not a diagnosis.`,
+                        'bot'
+                    );
                 })
                 .catch((error) => {
                     selectedImageId = '';
