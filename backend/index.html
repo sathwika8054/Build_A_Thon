@@ -872,6 +872,15 @@
             appScreen.classList.add('hidden');
         }
 
+        async function readApiResponse(response) {
+            const text = await response.text();
+            try {
+                return text ? JSON.parse(text) : {};
+            } catch (error) {
+                return { detail: text || `Request failed (${response.status})` };
+            }
+        }
+
         async function loginUser(event) {
             event.preventDefault();
             const username = document.getElementById('loginUser').value.trim();
@@ -884,7 +893,7 @@
                     body: JSON.stringify({ username, password })
                 });
 
-                const data = await response.json();
+                const data = await readApiResponse(response);
 
                 if (!response.ok) {
                     const detail = Array.isArray(data.detail)
@@ -923,7 +932,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, current_password: currentPassword, new_password: newPassword })
                 });
-                const data = await response.json();
+                const data = await readApiResponse(response);
                 if (!response.ok) throw new Error(data.detail || 'Password change failed');
                 messageElement.textContent = data.message;
                 messageElement.style.color = 'var(--success-text)';
@@ -1001,7 +1010,7 @@
             formData.append('image', file);
             fetch('/upload-image', { method: 'POST', body: formData })
                 .then(async (response) => {
-                    const data = await response.json();
+                    const data = await readApiResponse(response);
                     if (!response.ok) throw new Error(data.detail || 'Upload failed');
                     selectedImageId = data.image_id;
                     uploadStatus.textContent = `${data.filename} uploaded`;
@@ -1087,7 +1096,7 @@
                     })
                 });
 
-                const data = await response.json();
+                const data = await readApiResponse(response);
                 chat.removeChild(chat.lastElementChild);
 
                 if (!response.ok) {
