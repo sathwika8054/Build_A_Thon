@@ -14,6 +14,7 @@ from fastapi import (
 from fastapi.responses import FileResponse
 
 from pydantic import BaseModel
+from schemas import RegisterRequest
 
 # --------------------------------
 # Database
@@ -179,11 +180,18 @@ def healthguard_app():
 
 @app.post("/register")
 def register(
-    username: str,
-    email: str,
-    password: str,
+    request: RegisterRequest,
     db: Session = Depends(get_db)
 ):
+
+    username = request.username.strip()
+    email = str(request.email).strip().lower()
+    password = request.password
+
+    if len(username) < 3:
+        raise HTTPException(status_code=400, detail="Username must be at least 3 characters")
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
     # Check whether email already exists
 

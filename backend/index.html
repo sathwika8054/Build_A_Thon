@@ -645,6 +645,16 @@
                 <button type="submit" class="primary-btn">Login</button>
             </form>
             <button type="button" id="resetPasswordBtn" class="secondary-btn">Reset password</button>
+            <button type="button" id="signupBtn" class="secondary-btn">Create account</button>
+            <form id="signupForm" class="hidden">
+                <label for="signupUsername">Username</label>
+                <input id="signupUsername" type="text" minlength="3" required />
+                <label for="signupEmail">Email</label>
+                <input id="signupEmail" type="email" required />
+                <label for="signupPassword">Password</label>
+                <input id="signupPassword" type="password" minlength="8" required />
+                <button type="submit" class="primary-btn">Sign up</button>
+            </form>
             <form id="resetPasswordForm" class="hidden">
                 <label for="resetCurrentPass">Current password</label>
                 <input id="resetCurrentPass" type="password" required />
@@ -757,6 +767,8 @@
         const loginError = document.getElementById('loginError');
         const resetPasswordBtn = document.getElementById('resetPasswordBtn');
         const resetPasswordForm = document.getElementById('resetPasswordForm');
+        const signupBtn = document.getElementById('signupBtn');
+        const signupForm = document.getElementById('signupForm');
         const chat = document.getElementById('chat');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -923,6 +935,38 @@
             const currentPassword = document.getElementById('resetCurrentPass').value;
             const newPassword = document.getElementById('resetNewPass').value;
             await changePassword(username, currentPassword, newPassword, loginError);
+        });
+
+        signupBtn.addEventListener('click', () => {
+            signupForm.classList.toggle('hidden');
+            signupBtn.textContent = signupForm.classList.contains('hidden') ? 'Create account' : 'Cancel signup';
+        });
+
+        signupForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const payload = {
+                username: document.getElementById('signupUsername').value.trim(),
+                email: document.getElementById('signupEmail').value.trim(),
+                password: document.getElementById('signupPassword').value
+            };
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await readApiResponse(response);
+                if (!response.ok) throw new Error(data.detail || 'Signup failed');
+                loginError.style.color = 'var(--success-text)';
+                loginError.textContent = 'Account created. You can now log in.';
+                document.getElementById('loginUser').value = payload.username;
+                signupForm.reset();
+                signupForm.classList.add('hidden');
+                signupBtn.textContent = 'Create account';
+            } catch (error) {
+                loginError.style.color = 'var(--danger-text)';
+                loginError.textContent = error.message;
+            }
         });
 
         async function changePassword(username, currentPassword, newPassword, messageElement) {
