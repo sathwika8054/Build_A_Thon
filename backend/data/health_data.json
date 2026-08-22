@@ -1,0 +1,85 @@
+{
+  "dengue": {
+    "name": "Dengue",
+    "category": "Infectious disease",
+    "symptoms": [
+      "fever",
+      "headache",
+      "pain behind the eyes",
+      "muscle pain",
+      "joint pain",
+      "nausea",
+      "vomiting",
+      "rash"
+    ],
+    "transmission": "Dengue is primarily transmitted through the bite of infected Aedes mosquitoes.",
+    "prevention": [
+      "Use mosquito repellent.",
+      "Wear clothing that covers the arms and legs.",
+      "Reduce standing water around homes.",
+      "Use screens or other measures to reduce mosquito exposure."
+    ],
+    "warning_signs": [
+      "severe abdominal pain",
+      "persistent vomiting",
+      "bleeding",
+      "extreme weakness",
+      "difficulty breathing"
+    ]
+  },
+
+  "malaria": {
+    "name": "Malaria",
+    "category": "Infectious disease",
+    "symptoms": [
+      "fever",
+      "chills",
+      "sweating",
+      "headache",
+      "body aches",
+      "nausea",
+      "fatigue"
+    ],
+    "transmission": "Malaria is transmitted through the bites of infected Anopheles mosquitoes.",
+    "prevention": [
+      "Use insect repellent.",
+      "Use mosquito nets where appropriate.",
+      "Wear protective clothing.",
+      "Follow recommended malaria prevention measures when traveling to affected areas."
+    ],
+    "warning_signs": [
+      "confusion",
+      "difficulty breathing",
+      "seizures",
+      "severe weakness",
+      "loss of consciousness"
+    ]
+  },
+
+  "influenza": {
+    "name": "Influenza",
+    "category": "Respiratory infection",
+    "symptoms": [
+      "fever",
+      "cough",
+      "sore throat",
+      "body aches",
+      "headache",
+      "fatigue"
+    ],
+    "transmission": "Influenza can spread through respiratory droplets and particles from an infected person.",
+    "prevention": [
+      "Stay home when sick when possible.",
+      "Improve ventilation.",
+      "Practice good hand hygiene.",
+      "Consider recommended influenza vaccination."
+    ],
+    "warning_signs": [
+      "difficulty breathing",
+      "chest pain",
+      "severe weakness",
+      "confusion",
+      "symptoms that improve and then become significantly worse"
+    ]
+  }
+}

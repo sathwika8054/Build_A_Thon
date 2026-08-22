@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HealthGuard AI</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef5f9;
+        }
+
+        .container {
+            width: 750px;
+            max-width: 92%;
+            margin: 40px auto;
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        #chat {
+            height: 420px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .message {
+            padding: 13px;
+            border-radius: 12px;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .user {
+            background: #e3f2fd;
+            text-align: right;
+        }
+
+        .bot {
+            background: #e8f5e9;
+        }
+
+        .emergency {
+            background: #ffebee;
+            border-left: 5px solid #d32f2f;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .info {
+            background: #f3f6f8;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #1976d2;
+        }
+
+        button {
+            padding: 14px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #1976d2;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0d47a1;
+        }
+
+        .warning {
+            text-align: center;
+            color: #b71c1c;
+            font-size: 13px;
+            margin-top: 18px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🩺 HealthGuard AI</h1>
+
+    <div class="subtitle">
+        AI-powered Public Health Assistant
+    </div>
+
+    <div id="chat">
+
+        <div class="message bot">
+
+            <b>HealthGuard AI</b><br>
+
+            Hello! 👋<br>
+            Ask me a general public-health question.
+
+        </div>
+
+    </div>
+
+
+    <div class="input-area">
+
+        <input
+            type="text"
+            id="message"
+            placeholder="Ask a health question..."
+            onkeydown="handleKey(event)"
+        >
+
+        <button onclick="sendMessage()">
+            Send
+        </button>
+
+    </div>
+
+
+    <div class="warning">
+
+        ⚠️ Educational information only.
+        This is not a medical diagnosis or a substitute for professional medical advice.
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function sendMessage() {
+
+    const input = document.getElementById("message");
+
+    const message = input.value.trim();
+
+    if (!message) {
+        return;
+    }
+
+
+    // Show user message
+
+    addMessage(
+        "You",
+        message,
+        "user"
+    );
+
+
+    input.value = "";
+
+
+    // Show loading
+
+    addMessage(
+        "HealthGuard AI",
+        "Thinking...",
+        "bot"
+    );
+
+
+    try {
+
+        const response = await fetch(
+            "/chat",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    message: message
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        // Remove loading message
+
+        const chat = document.getElementById("chat");
+
+        chat.removeChild(chat.lastElementChild);
+
+
+        if (!response.ok) {
+
+            addMessage(
+                "HealthGuard AI",
+                "Sorry, something went wrong.",
+                "bot"
+            );
+
+            return;
+        }
+
+
+        // Create bot response
+
+        const botDiv = document.createElement("div");
+
+        botDiv.className = "message bot";
+
+
+        let html = "";
+
+        html += "<b>🩺 HealthGuard AI</b><br><br>";
+
+        html += data.answer.replace(/\n/g, "<br>");
+
+
+        // Medical concepts
+
+        if (
+            data.medical_concepts &&
+            data.medical_concepts.length > 0
+        ) {
+
+            html += `
+                <div class="info">
+                    🧠 <b>Medical concepts detected:</b><br>
+                    ${data.medical_concepts.join(", ")}
+                </div>
+            `;
+
+        }
+
+
+        // Sources
+
+        html += `
+            <div class="info">
+                📚 <b>Knowledge-base sources found:</b>
+                ${data.sources_found}
+            </div>
+        `;
+
+
+        // Emergency warning
+
+        if (
+            data.emergency_signs &&
+            data.emergency_signs.length > 0
+        ) {
+
+            html += `
+                <div class="emergency">
+                    🚨 <b>Emergency Warning</b><br><br>
+                    Possible emergency-related symptoms were detected.
+                    Please seek urgent professional medical attention
+                    when appropriate.
+                </div>
+            `;
+
+        }
+
+
+        botDiv.innerHTML = html;
+
+        chat.appendChild(botDiv);
+
+        chat.scrollTop = chat.scrollHeight;
+
+
+    } catch (error) {
+
+        const chat = document.getElementById("chat");
+
+        chat.removeChild(chat.lastElementChild);
+
+
+        addMessage(
+            "HealthGuard AI",
+            "Unable to connect to the HealthGuard server.",
+            "bot"
+        );
+
+
+        console.error(error);
+
+    }
+
+}
+
+
+function addMessage(
+    sender,
+    message,
+    type
+) {
+
+    const chat = document.getElementById("chat");
+
+    const div = document.createElement("div");
+
+    div.className = "message " + type;
+
+    div.innerHTML =
+        "<b>" +
+        sender +
+        ":</b><br>" +
+        message.replace(/\n/g, "<br>");
+
+
+    chat.appendChild(div);
+
+    chat.scrollTop = chat.scrollHeight;
+
+}
+
+
+function handleKey(event) {
+
+    if (event.key === "Enter") {
+
+        sendMessage();
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
