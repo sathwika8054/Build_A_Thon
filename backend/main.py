@@ -127,7 +127,7 @@ class ChatRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 
@@ -219,7 +219,7 @@ def register(
     user = User(
         username=username,
         email=email,
-        password=hashed_password
+        hashed_password=hashed_password
     )
 
     db.add(user)
@@ -270,7 +270,7 @@ def login(
 
     user = (
         db.query(User)
-        .filter(User.email == request.email)
+        .filter(User.username == request.username.strip())
         .first()
     )
 
@@ -278,14 +278,14 @@ def login(
 
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Invalid username or password"
         )
 
     try:
 
         valid_password = password_hash.verify(
             request.password,
-            user.password
+            user.hashed_password
         )
 
     except Exception:
@@ -296,7 +296,7 @@ def login(
 
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Invalid username or password"
         )
 
     token = create_access_token(
@@ -307,6 +307,7 @@ def login(
         "success": True,
         "message": "Login successful",
         "access_token": token,
+        "token": token,
         "token_type": "bearer",
         "user_id": user.id,
         "username": user.username,

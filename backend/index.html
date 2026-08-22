@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,7 @@
     <style>
         :root {
             --bg: #f4f8ff;
-            --panel: rgba(255,255,255,0.88);
+            --panel: rgba(255, 255, 255, 0.88);
             --panel-strong: #ffffff;
             --primary: #1d4ed8;
             --primary-soft: #dbeafe;
@@ -28,13 +29,14 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             min-height: 100%;
             font-family: Inter, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 35%),
-                radial-gradient(circle at bottom right, rgba(14,165,233,0.15), transparent 30%),
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.15), transparent 30%),
                 var(--bg);
             color: var(--text);
         }
@@ -51,7 +53,7 @@
             grid-template-columns: 260px minmax(0, 1fr);
             width: min(1200px, 100%);
             min-height: 860px;
-            background: rgba(255,255,255,0.6);
+            background: rgba(255, 255, 255, 0.6);
             border: 1px solid var(--border);
             border-radius: 28px;
             box-shadow: var(--shadow);
@@ -68,7 +70,7 @@
         }
 
         .login-card {
-            background: rgba(255,255,255,0.9);
+            background: rgba(255, 255, 255, 0.9);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 34px;
@@ -94,7 +96,7 @@
 
         .login-card input {
             width: 100%;
-            border: 1px solid rgba(148,163,184,0.5);
+            border: 1px solid rgba(148, 163, 184, 0.5);
             border-radius: 12px;
             padding: 13px 14px;
             font: inherit;
@@ -102,8 +104,8 @@
         }
 
         .login-card input:focus {
-            border-color: rgba(59,130,246,0.7);
-            box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+            border-color: rgba(59, 130, 246, 0.7);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
         }
 
         .primary-btn {
@@ -247,7 +249,7 @@
         }
 
         .main {
-            background: rgba(255,255,255,0.22);
+            background: rgba(255, 255, 255, 0.22);
             padding: 26px 28px 18px;
             display: flex;
             flex-direction: column;
@@ -280,8 +282,8 @@
         }
 
         .hero {
-            background: linear-gradient(135deg, rgba(191,219,254,0.45), rgba(224,242,254,0.7));
-            border: 1px solid rgba(147,197,253,0.5);
+            background: linear-gradient(135deg, rgba(191, 219, 254, 0.45), rgba(224, 242, 254, 0.7));
+            border: 1px solid rgba(147, 197, 253, 0.5);
             border-radius: 24px;
             padding: 26px 24px;
             display: grid;
@@ -305,11 +307,11 @@
         }
 
         .stat-card {
-            background: rgba(255,255,255,0.75);
-            border: 1px solid rgba(148,163,184,0.35);
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(148, 163, 184, 0.35);
             border-radius: 20px;
             padding: 18px 18px 16px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .stat-card .label {
@@ -345,8 +347,8 @@
         }
 
         .prompt-chip {
-            border: 1px solid rgba(59,130,246,0.2);
-            background: rgba(239,246,255,0.8);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: rgba(239, 246, 255, 0.8);
             color: var(--primary);
             border-radius: 999px;
             padding: 10px 14px;
@@ -357,7 +359,7 @@
 
         .prompt-chip:hover {
             transform: translateY(-1px);
-            background: rgba(219,234,254,0.9);
+            background: rgba(219, 234, 254, 0.9);
         }
 
         .chat-panel {
@@ -367,7 +369,7 @@
             min-height: 420px;
             border: 1px solid var(--border);
             border-radius: 24px;
-            background: rgba(255,255,255,0.7);
+            background: rgba(255, 255, 255, 0.7);
             overflow: hidden;
         }
 
@@ -377,7 +379,7 @@
             max-height: 470px;
             overflow-y: auto;
             padding: 18px 18px 8px;
-            background: rgba(248,250,252,0.7);
+            background: rgba(248, 250, 252, 0.7);
         }
 
         .message {
@@ -400,7 +402,7 @@
         .message.bot {
             margin-right: auto;
             background: white;
-            border: 1px solid rgba(148,163,184,0.25);
+            border: 1px solid rgba(148, 163, 184, 0.25);
             border-bottom-left-radius: 6px;
         }
 
@@ -439,7 +441,7 @@
 
         .meta-box {
             background: #f8fafc;
-            border: 1px solid rgba(148,163,184,0.25);
+            border: 1px solid rgba(148, 163, 184, 0.25);
         }
 
         .warning-box {
@@ -456,7 +458,7 @@
 
         .composer {
             border-top: 1px solid var(--border);
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             padding: 18px;
         }
 
@@ -472,8 +474,8 @@
             max-height: 160px;
             resize: vertical;
             border-radius: 16px;
-            border: 1px solid rgba(148,163,184,0.5);
-            background: rgba(248,250,252,0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(248, 250, 252, 0.9);
             padding: 14px 16px;
             font: inherit;
             color: var(--text);
@@ -481,8 +483,8 @@
         }
 
         textarea:focus {
-            border-color: rgba(59,130,246,0.7);
-            box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+            border-color: rgba(59, 130, 246, 0.7);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
         }
 
         .send-btn {
@@ -494,7 +496,7 @@
             padding: 16px 22px;
             cursor: pointer;
             min-width: 150px;
-            box-shadow: 0 10px 20px rgba(29,78,216,0.25);
+            box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
         }
 
         .send-btn:disabled {
@@ -609,6 +611,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
@@ -664,48 +667,54 @@
             </div>
 
             <section id="assistantView">
-            <section class="hero">
-                <div>
-                    <h1>Ask about symptoms, prevention, and safer everyday care.</h1>
-                    <p>Get quick, supportive responses grounded in the current public-health knowledge base.</p>
+                <section class="hero">
+                    <div>
+                        <h1>Ask about symptoms, prevention, and safer everyday care.</h1>
+                        <p>Get quick, supportive responses grounded in the current public-health knowledge base.</p>
+                    </div>
+
+                </section>
+
+                <div class="prompt-row" aria-label="Suggested prompts">
+                    <button class="prompt-chip" type="button"
+                        data-prompt="Give me details about dengue symptoms, prevention, and warning signs.">Dengue</button>
+                    <button class="prompt-chip" type="button"
+                        data-prompt="Give me details about malaria symptoms, prevention, and warning signs.">Malaria</button>
+                    <button class="prompt-chip" type="button"
+                        data-prompt="Give me details about covid symptoms, prevention, and warning signs.">COVID-19</button>
+                    <button class="prompt-chip" type="button"
+                        data-prompt="Give me details about typhoid symptoms and prevention.">Typhoid</button>
                 </div>
 
-            </section>
+                <section class="chat-panel" aria-live="polite">
+                    <div id="chat" class="chat-window">
+                        <div class="message bot">
+                            <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                            Hello! I can help with public-health questions, symptom awareness, and safe next steps. Ask
+                            me about dengue, malaria, covid, typhoid, cholera, or other disease details.
+                        </div>
+                    </div>
 
-            <div class="prompt-row" aria-label="Suggested prompts">
-                <button class="prompt-chip" type="button" data-prompt="Give me details about dengue symptoms, prevention, and warning signs.">Dengue</button>
-                <button class="prompt-chip" type="button" data-prompt="Give me details about malaria symptoms, prevention, and warning signs.">Malaria</button>
-                <button class="prompt-chip" type="button" data-prompt="Give me details about covid symptoms, prevention, and warning signs.">COVID-19</button>
-                <button class="prompt-chip" type="button" data-prompt="Give me details about typhoid symptoms and prevention.">Typhoid</button>
-            </div>
-
-            <section class="chat-panel" aria-live="polite">
-                <div id="chat" class="chat-window">
-                    <div class="message bot">
-                        <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
-                        Hello! I can help with public-health questions, symptom awareness, and safe next steps. Ask me about dengue, malaria, covid, typhoid, cholera, or other disease details.
+                    <div class="composer">
+                        <div class="composer-tools">
+                            <label class="upload-label" for="imageInput">Attach photo
+                                <input id="imageInput" type="file" accept="image/*" />
+                            </label>
+                            <label><input id="autocorrectToggle" type="checkbox" checked /> Autocorrect</label>
+                            <span id="uploadStatus">Ready for a photo</span>
+                        </div>
+                        <img id="imagePreview" class="image-preview" alt="Selected health image preview" />
+                        <div class="composer-row">
+                            <textarea id="messageInput" placeholder="Type a disease name or health question here..."
+                                aria-label="Message input"></textarea>
+                            <button id="sendBtn" class="send-btn" type="button">Ask AI</button>
+                        </div>
+                        <div class="composer-foot">
+                            <span>Educational guidance only</span>
+                            <span id="statusText">Ready</span>
+                        </div>
                     </div>
-                </div>
-
-                <div class="composer">
-                    <div class="composer-tools">
-                        <label class="upload-label" for="imageInput">Attach photo
-                            <input id="imageInput" type="file" accept="image/*" />
-                        </label>
-                        <label><input id="autocorrectToggle" type="checkbox" checked /> Autocorrect</label>
-                        <span id="uploadStatus">Ready for a photo</span>
-                    </div>
-                    <img id="imagePreview" class="image-preview" alt="Selected health image preview" />
-                    <div class="composer-row">
-                        <textarea id="messageInput" placeholder="Type a disease name or health question here..." aria-label="Message input"></textarea>
-                        <button id="sendBtn" class="send-btn" type="button">Ask AI</button>
-                    </div>
-                    <div class="composer-foot">
-                        <span>Educational guidance only</span>
-                        <span id="statusText">Ready</span>
-                    </div>
-                </div>
-            </section>
+                </section>
             </section>
 
             <section id="infoView" class="chat-panel hidden" aria-live="polite">
@@ -853,10 +862,13 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Login failed');
+                    const detail = Array.isArray(data.detail)
+                        ? data.detail.map((item) => item.msg || item).join(', ')
+                        : data.detail;
+                    throw new Error(detail || 'Login failed');
                 }
 
-                localStorage.setItem('healthguardToken', data.token || 'demo');
+                localStorage.setItem('healthguardToken', data.access_token || data.token || 'demo');
                 loginError.textContent = '';
                 showApp();
             } catch (error) {
@@ -1062,4 +1074,5 @@
 
     </script>
 </body>
+
 </html>
