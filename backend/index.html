@@ -134,6 +134,19 @@
             font-size: 0.78rem;
         }
 
+        .secondary-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 11px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            color: var(--primary);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .sidebar {
             background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
             color: white;
@@ -631,6 +644,14 @@
 
                 <button type="submit" class="primary-btn">Login</button>
             </form>
+            <button type="button" id="resetPasswordBtn" class="secondary-btn">Reset password</button>
+            <form id="resetPasswordForm" class="hidden">
+                <label for="resetCurrentPass">Current password</label>
+                <input id="resetCurrentPass" type="password" required />
+                <label for="resetNewPass">New password</label>
+                <input id="resetNewPass" type="password" minlength="8" required />
+                <button type="submit" class="primary-btn">Save new password</button>
+            </form>
             <div id="loginError" class="login-error"></div>
             <div class="login-note">Use the username and password you registered with.</div>
         </div>
@@ -663,6 +684,7 @@
                 <div class="topbar-title">Public health assistant</div>
                 <div>
                     <button type="button" id="historyBtn">History</button>
+                    <button type="button" id="changePasswordBtn">Change password</button>
                     <button type="button" id="newChatBtn">New chat</button>
                 </div>
             </div>
@@ -733,6 +755,8 @@
         const appScreen = document.getElementById('appScreen');
         const loginForm = document.getElementById('loginForm');
         const loginError = document.getElementById('loginError');
+        const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
         const chat = document.getElementById('chat');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -878,6 +902,47 @@
         }
 
         loginForm.addEventListener('submit', loginUser);
+
+        resetPasswordBtn.addEventListener('click', () => {
+            resetPasswordForm.classList.toggle('hidden');
+            resetPasswordBtn.textContent = resetPasswordForm.classList.contains('hidden') ? 'Reset password' : 'Cancel reset';
+        });
+
+        resetPasswordForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('loginUser').value.trim();
+            const currentPassword = document.getElementById('resetCurrentPass').value;
+            const newPassword = document.getElementById('resetNewPass').value;
+            await changePassword(username, currentPassword, newPassword, loginError);
+        });
+
+        async function changePassword(username, currentPassword, newPassword, messageElement) {
+            try {
+                const response = await fetch('/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, current_password: currentPassword, new_password: newPassword })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Password change failed');
+                messageElement.textContent = data.message;
+                messageElement.style.color = 'var(--success-text)';
+                resetPasswordForm.reset();
+            } catch (error) {
+                messageElement.textContent = error.message;
+                messageElement.style.color = 'var(--danger-text)';
+            }
+        }
+
+        document.getElementById('changePasswordBtn').addEventListener('click', () => {
+            const username = window.prompt('Enter your username or email:', '');
+            if (!username) return;
+            const currentPassword = window.prompt('Enter current password:');
+            if (!currentPassword) return;
+            const newPassword = window.prompt('Enter new password (8+ characters):');
+            if (!newPassword) return;
+            changePassword(username, currentPassword, newPassword, statusText);
+        });
 
         const promptButtons = document.querySelectorAll('.prompt-chip');
         promptButtons.forEach((button) => {

@@ -6,9 +6,8 @@ from openai import OpenAI
 
 load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 
 def analyze_medical_image(image_path: str) -> str:
@@ -50,6 +49,12 @@ def analyze_medical_image(image_path: str) -> str:
             return (
                 "Unsupported image format. "
                 "Please upload JPG, PNG, or WEBP."
+            )
+
+        if client is None:
+            return (
+                "The image was uploaded successfully, but AI image analysis "
+                "needs an OPENAI_API_KEY configuration."
             )
 
         # Send image to OpenAI

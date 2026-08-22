@@ -132,6 +132,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class PasswordChangeRequest(BaseModel):
+    username: str
+    current_password: str
+    new_password: str
+
+
 # ================================================
 # ROOT ENDPOINT
 # ================================================
@@ -319,6 +325,45 @@ def login(
         "username": user.username,
         "email": user.email
     }
+
+
+@app.post("/change-password")
+def change_password(
+    request: PasswordChangeRequest,
+    db: Session = Depends(get_db)
+):
+    user = (
+        db.query(User)
+        .filter(
+            or_(
+                User.username == request.username.strip(),
+                User.email == request.username.strip()
+            )
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        current_password_valid = password_hash.verify(
+            request.current_password,
+            user.hashed_password
+        )
+    except Exception:
+        current_password_valid = False
+
+    if not current_password_valid:
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    if len(request.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
+    if request.new_password == request.current_password:
+        raise HTTPException(status_code=400, detail="New password must be different")
+
+    user.hashed_password = password_hash.hash(request.new_password)
+    db.commit()
+    return {"success": True, "message": "Password changed successfully"}
 
 
 # ================================================

@@ -2,3 +2,8 @@ fastapi
 uvicorn
 python-dotenv
 python-multipart
+sqlalchemy
+PyJWT
+pwdlib[argon2]
+openai
+email-validator
