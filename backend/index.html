@@ -622,8 +622,9 @@
             <h2>Secure Sign In</h2>
             <p>Use your clinic credentials to continue.</p>
             <form id="loginForm">
-                <label for="loginUser">Username</label>
-                <input id="loginUser" name="username" type="text" placeholder="admin / doctor / nurse" required />
+                <label for="loginUser">Username or email</label>
+                <input id="loginUser" name="username" type="text" placeholder="Enter your registered username or email"
+                    required />
 
                 <label for="loginPass">Password</label>
                 <input id="loginPass" name="password" type="password" placeholder="Enter password" required />
@@ -631,7 +632,7 @@
                 <button type="submit" class="primary-btn">Login</button>
             </form>
             <div id="loginError" class="login-error"></div>
-            <div class="login-note">Demo credentials: admin / healthguard123</div>
+            <div class="login-note">Use the username and password you registered with.</div>
         </div>
     </div>
 

@@ -35,6 +35,7 @@ import jwt
 
 from pwdlib import PasswordHash
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 # --------------------------------
@@ -270,7 +271,12 @@ def login(
 
     user = (
         db.query(User)
-        .filter(User.username == request.username.strip())
+        .filter(
+            or_(
+                User.username == request.username.strip(),
+                User.email == request.username.strip()
+            )
+        )
         .first()
     )
 
