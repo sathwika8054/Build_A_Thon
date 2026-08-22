@@ -2,26 +2,95 @@ import os
 import uuid
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    HTTPException,
+    Depends
+)
+
 from fastapi.responses import FileResponse
+
 from pydantic import BaseModel
 
+# --------------------------------
+# Database
+# --------------------------------
+
+from database import (
+    engine,
+    Base,
+    get_db
+)
+
+from models import User
+
+# --------------------------------
+# Authentication
+# --------------------------------
+
+import jwt
+
+from pwdlib import PasswordHash
+
+from sqlalchemy.orm import Session
+
+# --------------------------------
+# Existing HealthGuard modules
+# --------------------------------
+
 from knowledge_base import search_health_data
-from medical_concepts import extract_medical_concepts
+
+from medical_concepts import (
+    extract_medical_concepts as extract_graph_concepts
+)
+
 from medical_graph import get_related_concepts
-from safety import check_emergency, add_safety_guidance
 
+from safety import (
+    check_emergency,
+    add_safety_guidance
+)
+
+from medical_nlp import (
+    extract_medical_concepts as extract_nlp_concepts
+)
+
+from rag import build_rag_context
+
+from ai_service import generate_health_response
 
 # --------------------------------
-# Load environment variables
+# Image analysis
 # --------------------------------
+
+from image_service import analyze_medical_image
+
+
+# ================================================
+# LOAD ENVIRONMENT VARIABLES
+# ================================================
 
 load_dotenv()
 
 
-# --------------------------------
-# Create FastAPI application
-# --------------------------------
+# ================================================
+# DATABASE INITIALIZATION
+# ================================================
+
+try:
+    Base.metadata.create_all(
+        bind=engine
+    )
+except Exception as e:
+    print("Database initialization warning:", e)
+
+
+# ================================================
+# FASTAPI APPLICATION
+# ================================================
 
 app = FastAPI(
     title="HealthGuard AI",
@@ -30,208 +99,605 @@ app = FastAPI(
 )
 
 
-# --------------------------------
-# Request models
-# --------------------------------
+# ================================================
+# PASSWORD HASHING
+# ================================================
+
+password_hash = PasswordHash.recommended()
+
+
+# ================================================
+# JWT SETTINGS
+# ================================================
+
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "healthguard-development-secret-key"
+)
+
+ALGORITHM = "HS256"
+
+
+# ================================================
+# REQUEST MODELS
+# ================================================
 
 class ChatRequest(BaseModel):
     message: str
-    image_data: str | None = None
-    image_id: str | None = None
-    context_disease: str | None = None
 
 
 class LoginRequest(BaseModel):
-    username: str
+    email: str
     password: str
 
 
-VALID_USERS = {
-    "admin": "healthguard123",
-    "doctor": "doctor123",
-    "nurse": "nurse123"
-}
-
-
-# --------------------------------
-# Home API
-# --------------------------------
+# ================================================
+# ROOT ENDPOINT
+# ================================================
 
 @app.get("/")
 def home():
+
     return {
         "message": "HealthGuard AI is running!",
         "status": "healthy"
     }
 
 
-# --------------------------------
-# Login API
-# --------------------------------
-
-@app.post("/login")
-def login(request: LoginRequest):
-    username = (request.username or "").strip().lower()
-    password = (request.password or "").strip()
-
-    if username in VALID_USERS and VALID_USERS[username] == password:
-        return {
-            "success": True,
-            "message": "Login successful",
-            "username": username,
-            "token": "demo-healthguard-token"
-        }
-
-    raise HTTPException(status_code=401, detail="Invalid username or password")
-
-
-# --------------------------------
-# HealthGuard AI Web App
-# --------------------------------
+# ================================================
+# HEALTHGUARD WEB APP
+# ================================================
 
 @app.get("/app")
 def healthguard_app():
+
     file_path = os.path.join(
         os.path.dirname(__file__),
         "index.html"
     )
+
+    if not os.path.exists(file_path):
+
+        raise HTTPException(
+            status_code=404,
+            detail="index.html not found"
+        )
+
     return FileResponse(file_path)
 
 
-@app.post("/upload-image")
-async def upload_image(image: UploadFile = File(...)):
-    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
-    if image.content_type not in allowed_types:
-        raise HTTPException(status_code=415, detail="Please upload a JPG, PNG, WEBP, or GIF image")
+# ================================================
+# REGISTER
+# ================================================
 
-    upload_directory = os.path.join(os.path.dirname(__file__), "data", "uploads")
-    os.makedirs(upload_directory, exist_ok=True)
-    extension = os.path.splitext(image.filename or "photo.jpg")[1].lower() or ".jpg"
-    image_id = uuid.uuid4().hex
-    file_path = os.path.join(upload_directory, f"{image_id}{extension}")
-    content = await image.read(5 * 1024 * 1024 + 1)
-    if len(content) > 5 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="Image must be 5 MB or smaller")
+@app.post("/register")
+def register(
+    username: str,
+    email: str,
+    password: str,
+    db: Session = Depends(get_db)
+):
 
-    with open(file_path, "wb") as file:
-        file.write(content)
+    # Check whether email already exists
+
+    existing_email = (
+        db.query(User)
+        .filter(User.email == email)
+        .first()
+    )
+
+    if existing_email:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    # Check username
+
+    existing_username = (
+        db.query(User)
+        .filter(User.username == username)
+        .first()
+    )
+
+    if existing_username:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Username already exists"
+        )
+
+    # Hash password
+
+    hashed_password = password_hash.hash(
+        password
+    )
+
+    # Create user
+
+    user = User(
+        username=username,
+        email=email,
+        password=hashed_password
+    )
+
+    db.add(user)
+
+    db.commit()
+
+    db.refresh(user)
 
     return {
         "success": True,
-        "image_id": image_id,
-        "filename": image.filename or "photo",
-        "message": "Photo uploaded successfully"
+        "message": "Registration successful",
+        "user_id": user.id,
+        "username": user.username,
+        "email": user.email
     }
 
 
-def is_follow_up_message(message: str) -> bool:
-    words = set(message.lower().split())
-    follow_up_words = {
-        "since", "for", "days", "day", "weeks", "week", "today", "yesterday",
-        "age", "old", "mild", "moderate", "severe", "yes", "no", "also", "and",
-        "started", "duration", "pregnant", "medication", "medicine", "pain", "fever"
+# ================================================
+# CREATE JWT TOKEN
+# ================================================
+
+def create_access_token(
+    user_id: int
+):
+
+    payload = {
+        "user_id": user_id
     }
-    question_words = {"what", "why", "how", "when", "where", "who", "can", "should", "is"}
-    return len(words) <= 12 and bool(words & follow_up_words) and not bool(words & question_words)
 
-
-def conversational_answer(message: str) -> str:
-    normalized = message.lower().strip()
-    if normalized in {"hi", "hello", "hey", "good morning", "good afternoon", "good evening"}:
-        return "Hello. I am here to help with health questions. What would you like to know?"
-    if "how are you" in normalized:
-        return "I am ready to help. Tell me your question, symptoms, or the disease you want to understand."
-    if "what can you do" in normalized or "who are you" in normalized:
-        return "I can explain health conditions, symptoms, prevention, warning signs, and safer next steps. I will ask follow-up questions when more context is needed."
-    if "thank" in normalized:
-        return "You are welcome. Is there anything else about your health you would like to understand?"
-    return (
-        "I can answer that as a general health conversation, but I do not want to guess a diagnosis. "
-        "Please tell me what you want to know and include any symptoms, how long they have been present, "
-        "and how severe they are."
+    token = jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
     )
 
+    return token
 
-# --------------------------------
-# Chat API
-# --------------------------------
+
+# ================================================
+# LOGIN
+# ================================================
+
+@app.post("/login")
+def login(
+    request: LoginRequest,
+    db: Session = Depends(get_db)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.email == request.email)
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    try:
+
+        valid_password = password_hash.verify(
+            request.password,
+            user.password
+        )
+
+    except Exception:
+
+        valid_password = False
+
+    if not valid_password:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    token = create_access_token(
+        user.id
+    )
+
+    return {
+        "success": True,
+        "message": "Login successful",
+        "access_token": token,
+        "token_type": "bearer",
+        "user_id": user.id,
+        "username": user.username,
+        "email": user.email
+    }
+
+
+# ================================================
+# GET CURRENT USER
+# ================================================
+
+def get_current_user(
+    token: str,
+    db: Session
+):
+
+    try:
+
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        user_id = payload.get(
+            "user_id"
+        )
+
+        if not user_id:
+
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token"
+            )
+
+    except jwt.PyJWTError:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return user
+
+
+# ================================================
+# ME ENDPOINT
+# ================================================
+
+@app.get("/me")
+def me(
+    token: str,
+    db: Session = Depends(get_db)
+):
+
+    user = get_current_user(
+        token,
+        db
+    )
+
+    return {
+        "success": True,
+        "user_id": user.id,
+        "username": user.username,
+        "email": user.email
+    }
+
+
+# ================================================
+# CHAT ENDPOINT
+# ================================================
 
 @app.post("/chat")
-def chat(request: ChatRequest):
+def chat(
+    request: ChatRequest
+):
+
+    # --------------------------------
+    # Get user message
+    # --------------------------------
+
     user_message = request.message.strip()
 
     if not user_message:
-        raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    emergency_signs = check_emergency(user_message)
-    concepts = extract_medical_concepts(user_message)
-    use_context = not concepts.get("diseases") and request.context_disease and is_follow_up_message(user_message)
-    search_message = " ".join(filter(None, [request.context_disease if use_context else None, user_message]))
-    if use_context:
-        concepts = extract_medical_concepts(search_message)
-    related_concepts = get_related_concepts(concepts)
-    health_information = search_health_data(search_message)
+        return {
+            "answer": "Please enter a health question.",
+            "medical_concepts": {},
+            "nlp_analysis": {},
+            "related_concepts": [],
+            "emergency_signs": [],
+            "sources_found": 0
+        }
+
+
+    # --------------------------------
+    # Emergency check
+    # --------------------------------
+
+    emergency_signs = check_emergency(
+        user_message
+    )
+
+
+    # --------------------------------
+    # Medical concept extraction
+    # --------------------------------
+
+    graph_concepts = extract_graph_concepts(
+        user_message
+    )
+
+
+    # --------------------------------
+    # Medical NLP
+    # --------------------------------
+
+    nlp_concepts = extract_nlp_concepts(
+        user_message
+    )
+
+
+    # --------------------------------
+    # Knowledge graph
+    # --------------------------------
+
+    related_concepts = get_related_concepts(
+        graph_concepts
+    )
+
+
+    # --------------------------------
+    # Search knowledge base
+    # --------------------------------
+
+    search_query = user_message
+
+    if isinstance(
+        nlp_concepts,
+        dict
+    ):
+
+        detected_disease = (
+            nlp_concepts.get("disease")
+        )
+
+        if detected_disease:
+
+            search_query = detected_disease
+
+
+    health_information = search_health_data(
+        search_query
+    )
+
+
+    # --------------------------------
+    # RAG
+    # --------------------------------
+
+    rag_context = build_rag_context(
+
+        user_query=user_message,
+
+        nlp_analysis=nlp_concepts,
+
+        health_information=health_information,
+
+        related_concepts=related_concepts
+    )
+
+
+    # --------------------------------
+    # AI response
+    # --------------------------------
 
     if health_information:
-        information_parts = []
 
-        for item in health_information:
-            disease_info = item.get("information", {}) or {}
-            disease_name = item.get("disease") or disease_info.get("name", "related condition")
-            category = disease_info.get("category", "General health")
-            transmission = disease_info.get("transmission", "Not listed")
-            symptoms = ", ".join(disease_info.get("symptoms", [])) or "Not listed"
-            prevention = "; ".join(disease_info.get("prevention", [])) or "Follow general public-health guidance"
-            warning = "; ".join(disease_info.get("warning_signs", [])) or "Seek professional care if symptoms are severe or worsening"
+        answer = generate_health_response(
 
-            information_parts.append(
-                f"Medical information for {disease_name}:\n"
-                f"Category: {category}\n"
-                f"How it spreads or develops: {transmission}\n"
-                f"Common symptoms: {symptoms}\n"
-                f"Prevention: {prevention}\n"
-                f"Warning signs: {warning}"
-            )
+            user_query=user_message,
 
-        answer = "\n\n".join(information_parts)
+            rag_context=rag_context
+        )
+
     else:
-        answer = conversational_answer(user_message)
+
+        answer = (
+            "I could not find enough relevant "
+            "information in the current HealthGuard "
+            "public-health knowledge base to answer "
+            "this safely."
+        )
+
+
+    # --------------------------------
+    # Emergency guidance
+    # --------------------------------
 
     if emergency_signs:
+
         answer += (
-            "\n\nIMPORTANT SAFETY ALERT:\n"
-            "Your message contains possible emergency-related symptoms or situations.\n"
-            "Please seek urgent professional medical attention when appropriate."
+
+            "\n\n⚠️ IMPORTANT SAFETY ALERT:\n"
+
+            "Your message contains possible "
+            "emergency-related symptoms or situations.\n"
+
+            "Please seek urgent professional "
+            "medical attention when appropriate."
         )
 
-    final_answer = add_safety_guidance(answer, health_information)
 
-    follow_up = None
-    if health_information and not any(word in user_message.lower() for word in [
-        "when", "since", "days", "long", "age", "old", "pregnant", "medication"
-    ]):
-        follow_up = (
-            "To understand your situation better: since when have you been experiencing "
-            "these symptoms, and how severe are they right now?"
-        )
-        final_answer = final_answer.strip() + "\n\n" + follow_up
+    # --------------------------------
+    # Safety guidance
+    # --------------------------------
 
-    if request.image_data or request.image_id:
-        final_answer = (
-            final_answer.strip() + "\n\nI received the uploaded image for context. "
-            "I cannot diagnose an image, so please describe what you want checked and "
-            "show it to a qualified clinician if it looks concerning."
-        )
+    final_answer = add_safety_guidance(
+        answer,
+        health_information
+    )
+
+
+    # --------------------------------
+    # Final response
+    # --------------------------------
 
     return {
+
         "answer": final_answer,
-        "medical_concepts": concepts,
+
+        "medical_concepts": graph_concepts,
+
+        "nlp_analysis": nlp_concepts,
+
         "related_concepts": related_concepts,
+
         "emergency_signs": emergency_signs,
-        "sources_found": len(health_information),
-        "disease_found": bool(health_information),
-        "disease_details": health_information[0]["information"] if health_information else None,
-        "follow_up": follow_up,
-        "image_received": bool(request.image_data or request.image_id),
-        "image_id": request.image_id
+
+        "sources_found": len(
+            health_information
+        )
     }
+
+
+# ================================================
+# IMAGE UPLOAD + IMAGE ANALYSIS
+# ================================================
+
+@app.post("/upload-image")
+async def upload_image(
+    file: UploadFile = File(...)
+):
+
+    try:
+
+        # --------------------------------
+        # Allowed image types
+        # --------------------------------
+
+        allowed_types = {
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        }
+
+        if file.content_type not in allowed_types:
+
+            return {
+                "success": False,
+                "message": (
+                    "Only JPG, PNG and WEBP "
+                    "images are supported."
+                )
+            }
+
+
+        # --------------------------------
+        # Upload directory
+        # --------------------------------
+
+        upload_dir = os.path.join(
+            os.path.dirname(__file__),
+            "uploads"
+        )
+
+        os.makedirs(
+            upload_dir,
+            exist_ok=True
+        )
+
+
+        # --------------------------------
+        # Unique image ID
+        # --------------------------------
+
+        image_id = uuid.uuid4().hex
+
+
+        # --------------------------------
+        # File extension
+        # --------------------------------
+
+        extension = os.path.splitext(
+            file.filename
+        )[1].lower()
+
+
+        # --------------------------------
+        # Image path
+        # --------------------------------
+
+        image_path = os.path.join(
+            upload_dir,
+            image_id + extension
+        )
+
+
+        # --------------------------------
+        # Read uploaded image
+        # --------------------------------
+
+        contents = await file.read()
+
+
+        # --------------------------------
+        # Save image
+        # --------------------------------
+
+        with open(
+            image_path,
+            "wb"
+        ) as image_file:
+
+            image_file.write(contents)
+
+
+        # --------------------------------
+        # Analyze image
+        # --------------------------------
+
+        analysis = analyze_medical_image(
+            image_path
+        )
+
+
+        # --------------------------------
+        # Return result
+        # --------------------------------
+
+        return {
+
+            "success": True,
+
+            "image_id": image_id,
+
+            "filename": file.filename,
+
+            "message": (
+                "Photo uploaded and "
+                "analyzed successfully"
+            ),
+
+            "analysis": analysis
+
+        }
+
+
+    except Exception as e:
+
+        return {
+
+            "success": False,
+
+            "message": (
+                "Image processing failed."
+            ),
+
+            "error": str(e)
+
+        }
