@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthGuard AI</title>
+    <style>
+        :root {
+            --bg: #f4f8ff;
+            --panel: rgba(255,255,255,0.88);
+            --panel-strong: #ffffff;
+            --primary: #1d4ed8;
+            --primary-soft: #dbeafe;
+            --accent: #0ea5e9;
+            --muted: #5b6475;
+            --text: #101828;
+            --border: rgba(148, 163, 184, 0.35);
+            --success-bg: #ecfdf5;
+            --success-text: #065f46;
+            --warning-bg: #fff7ed;
+            --warning-text: #9a5b00;
+            --danger-bg: #fff1f2;
+            --danger-text: #9f1239;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            font-family: Inter, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(14,165,233,0.15), transparent 30%),
+                var(--bg);
+            color: var(--text);
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 18px;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            width: min(1200px, 100%);
+            min-height: 860px;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .login-screen {
+            width: min(460px, 100%);
+        }
+
+        .login-card {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 34px;
+            box-shadow: var(--shadow);
+        }
+
+        .login-card h2 {
+            margin: 30px 0 8px;
+            font-size: 2rem;
+        }
+
+        .login-card p {
+            margin: 0 0 24px;
+            color: var(--muted);
+        }
+
+        .login-card label {
+            display: block;
+            margin: 16px 0 7px;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .login-card input {
+            width: 100%;
+            border: 1px solid rgba(148,163,184,0.5);
+            border-radius: 12px;
+            padding: 13px 14px;
+            font: inherit;
+            outline: none;
+        }
+
+        .login-card input:focus {
+            border-color: rgba(59,130,246,0.7);
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+        }
+
+        .primary-btn {
+            width: 100%;
+            margin-top: 24px;
+            border: 0;
+            border-radius: 12px;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .login-error {
+            min-height: 22px;
+            margin-top: 12px;
+            color: var(--danger-text);
+            font-size: 0.86rem;
+        }
+
+        .login-note {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+            color: white;
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.3rem;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #60a5fa, #1d4ed8);
+            box-shadow: 0 12px 25px rgba(29, 78, 216, 0.5);
+            font-size: 1.3rem;
+        }
+
+        .sidebar-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.18);
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-tag::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: #34d399;
+            border-radius: 50%;
+            box-shadow: 0 0 14px rgba(52, 211, 153, 0.8);
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .nav-item {
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            color: #e5e7eb;
+            font-size: 0.95rem;
+        }
+
+        .nav-item.active {
+            background: rgba(96, 165, 250, 0.18);
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        .view-heading {
+            margin: 0 0 8px;
+            font-size: 1.5rem;
+        }
+
+        .view-copy {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .guidance-list {
+            margin: 18px 0 0;
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .sidebar-card {
+            margin-top: auto;
+            padding: 18px 16px;
+            border-radius: 18px;
+            background: rgba(148, 163, 184, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .sidebar-card strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.92rem;
+        }
+
+        .sidebar-card p {
+            margin: 0;
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 0.82rem;
+        }
+
+        .main {
+            background: rgba(255,255,255,0.22);
+            padding: 26px 28px 18px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .topbar-title {
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .topbar button {
+            border: none;
+            border-radius: 12px;
+            background: #eef2ff;
+            color: var(--primary);
+            font-weight: 600;
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(191,219,254,0.45), rgba(224,242,254,0.7));
+            border: 1px solid rgba(147,197,253,0.5);
+            border-radius: 24px;
+            padding: 26px 24px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.6fr);
+            gap: 20px;
+            align-items: center;
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 3vw, 2.8rem);
+            line-height: 1.1;
+            letter-spacing: -0.05em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(148,163,184,0.35);
+            border-radius: 20px;
+            padding: 18px 18px 16px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .stat-card .label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .stat-number {
+            display: flex;
+            align-items: end;
+            gap: 6px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+        }
+
+        .stat-foot {
+            margin-top: 10px;
+            color: var(--success-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .prompt-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0 16px;
+        }
+
+        .prompt-chip {
+            border: 1px solid rgba(59,130,246,0.2);
+            background: rgba(239,246,255,0.8);
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .prompt-chip:hover {
+            transform: translateY(-1px);
+            background: rgba(219,234,254,0.9);
+        }
+
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 420px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: rgba(255,255,255,0.7);
+            overflow: hidden;
+        }
+
+        .chat-window {
+            flex: 1;
+            min-height: 300px;
+            max-height: 470px;
+            overflow-y: auto;
+            padding: 18px 18px 8px;
+            background: rgba(248,250,252,0.7);
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 14px 16px;
+            border-radius: 18px;
+            margin-bottom: 14px;
+            line-height: 1.6;
+            font-size: 0.96rem;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            margin-left: auto;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.bot {
+            margin-right: auto;
+            background: white;
+            border: 1px solid rgba(148,163,184,0.25);
+            border-bottom-left-radius: 6px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .message-header .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .message.user .message-header .dot {
+            background: #3b82f6;
+        }
+
+        .message.bot .message-header .dot {
+            background: #22c55e;
+        }
+
+        .meta-box,
+        .warning-box,
+        .emergency-box {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .meta-box {
+            background: #f8fafc;
+            border: 1px solid rgba(148,163,184,0.25);
+        }
+
+        .warning-box {
+            background: var(--warning-bg);
+            color: var(--warning-text);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .emergency-box {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid rgba(190, 24, 93, 0.2);
+        }
+
+        .composer {
+            border-top: 1px solid var(--border);
+            background: rgba(255,255,255,0.8);
+            padding: 18px;
+        }
+
+        .composer-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        textarea {
+            flex: 1;
+            min-height: 68px;
+            max-height: 160px;
+            resize: vertical;
+            border-radius: 16px;
+            border: 1px solid rgba(148,163,184,0.5);
+            background: rgba(248,250,252,0.9);
+            padding: 14px 16px;
+            font: inherit;
+            color: var(--text);
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: rgba(59,130,246,0.7);
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+        }
+
+        .send-btn {
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            font-weight: 700;
+            padding: 16px 22px;
+            cursor: pointer;
+            min-width: 150px;
+            box-shadow: 0 10px 20px rgba(29,78,216,0.25);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .composer-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .composer-tools {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .upload-label {
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .upload-label input {
+            display: none;
+        }
+
+        .image-preview {
+            display: none;
+            max-width: 180px;
+            max-height: 90px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .history-list {
+            margin: 18px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .history-list li {
+            padding: 0;
+            border-bottom: 1px solid var(--border);
+            line-height: 1.5;
+        }
+
+        .history-item {
+            width: 100%;
+            padding: 12px 0;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding-bottom: 16px;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 18px 12px;
+            }
+
+            .main {
+                padding: 18px 14px 12px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .composer-row {
+                flex-direction: column;
+            }
+
+            .send-btn {
+                width: 100%;
+            }
+
+            .message {
+                max-width: 92%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="brand">
+                <div class="brand-mark">✚</div>
+                <span>HealthGuard AI</span>
+            </div>
+            <h2>Secure Sign In</h2>
+            <p>Use your clinic credentials to continue.</p>
+            <form id="loginForm">
+                <label for="loginUser">Username</label>
+                <input id="loginUser" name="username" type="text" placeholder="admin / doctor / nurse" required />
+
+                <label for="loginPass">Password</label>
+                <input id="loginPass" name="password" type="password" placeholder="Enter password" required />
+
+                <button type="submit" class="primary-btn">Login</button>
+            </form>
+            <div id="loginError" class="login-error"></div>
+            <div class="login-note">Demo credentials: admin / healthguard123</div>
+        </div>
+    </div>
+
+    <div id="appScreen" class="app-shell hidden">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">✚</div>
+                <span>HealthGuard AI</span>
+            </div>
+
+            <div class="sidebar-tag">Online</div>
+
+            <nav class="nav" aria-label="Main navigation">
+                <button class="nav-item active" type="button" data-view="assistant">Health assistant</button>
+                <button class="nav-item" type="button" data-view="prevention">Preventive care</button>
+                <button class="nav-item" type="button" data-view="symptoms">Symptoms review</button>
+                <button class="nav-item" type="button" data-view="safety">Safety notes</button>
+            </nav>
+
+            <div class="sidebar-card">
+                <strong>Important</strong>
+                <p>Educational guidance only. It is not a diagnosis and should not replace professional care.</p>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div class="topbar-title">Public health assistant</div>
+                <div>
+                    <button type="button" id="historyBtn">History</button>
+                    <button type="button" id="newChatBtn">New chat</button>
+                </div>
+            </div>
+
+            <section id="assistantView">
+            <section class="hero">
+                <div>
+                    <h1>Ask about symptoms, prevention, and safer everyday care.</h1>
+                    <p>Get quick, supportive responses grounded in the current public-health knowledge base.</p>
+                </div>
+
+            </section>
+
+            <div class="prompt-row" aria-label="Suggested prompts">
+                <button class="prompt-chip" type="button" data-prompt="Give me details about dengue symptoms, prevention, and warning signs.">Dengue</button>
+                <button class="prompt-chip" type="button" data-prompt="Give me details about malaria symptoms, prevention, and warning signs.">Malaria</button>
+                <button class="prompt-chip" type="button" data-prompt="Give me details about covid symptoms, prevention, and warning signs.">COVID-19</button>
+                <button class="prompt-chip" type="button" data-prompt="Give me details about typhoid symptoms and prevention.">Typhoid</button>
+            </div>
+
+            <section class="chat-panel" aria-live="polite">
+                <div id="chat" class="chat-window">
+                    <div class="message bot">
+                        <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                        Hello! I can help with public-health questions, symptom awareness, and safe next steps. Ask me about dengue, malaria, covid, typhoid, cholera, or other disease details.
+                    </div>
+                </div>
+
+                <div class="composer">
+                    <div class="composer-tools">
+                        <label class="upload-label" for="imageInput">Attach photo
+                            <input id="imageInput" type="file" accept="image/*" />
+                        </label>
+                        <label><input id="autocorrectToggle" type="checkbox" checked /> Autocorrect</label>
+                        <span id="uploadStatus">Ready for a photo</span>
+                    </div>
+                    <img id="imagePreview" class="image-preview" alt="Selected health image preview" />
+                    <div class="composer-row">
+                        <textarea id="messageInput" placeholder="Type a disease name or health question here..." aria-label="Message input"></textarea>
+                        <button id="sendBtn" class="send-btn" type="button">Ask AI</button>
+                    </div>
+                    <div class="composer-foot">
+                        <span>Educational guidance only</span>
+                        <span id="statusText">Ready</span>
+                    </div>
+                </div>
+            </section>
+            </section>
+
+            <section id="infoView" class="chat-panel hidden" aria-live="polite">
+                <div class="chat-window">
+                    <h2 id="infoTitle" class="view-heading"></h2>
+                    <p id="infoCopy" class="view-copy"></p>
+                    <ul id="infoList" class="guidance-list"></ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const loginScreen = document.getElementById('loginScreen');
+        const appScreen = document.getElementById('appScreen');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusText = document.getElementById('statusText');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const autocorrectToggle = document.getElementById('autocorrectToggle');
+        const assistantView = document.getElementById('assistantView');
+        const infoView = document.getElementById('infoView');
+        const infoTitle = document.getElementById('infoTitle');
+        const infoCopy = document.getElementById('infoCopy');
+        const infoList = document.getElementById('infoList');
+        let selectedImageData = '';
+        let selectedImageId = '';
+        const conversationStorageKey = 'healthguardConversationV2';
+        localStorage.removeItem('healthguardConversation');
+        localStorage.removeItem('healthguardActiveDisease');
+        let conversation = JSON.parse(localStorage.getItem(conversationStorageKey) || '[]');
+        let activeDisease = '';
+        let activeDiseaseDetails = null;
+
+        const corrections = {
+            tronsils: 'tonsils',
+            tubercilosis: 'tuberculosis',
+            tubercolosis: 'tuberculosis',
+            thypoid: 'typhoid',
+            maleria: 'malaria',
+            dengu: 'dengue',
+            diabetis: 'diabetes',
+            hepititis: 'hepatitis',
+            pnumonia: 'pneumonia'
+        };
+
+        function correctMessage(value) {
+            if (!autocorrectToggle.checked) return value;
+            return value.replace(/\b[a-zA-Z]+\b/g, (word) => corrections[word.toLowerCase()] || word);
+        }
+
+        function saveConversation() {
+            localStorage.setItem(conversationStorageKey, JSON.stringify(conversation.slice(-40)));
+        }
+
+        function restoreConversation() {
+            conversation.forEach((item) => appendMessage(item.sender, item.message, item.type, false));
+        }
+
+        function recordMessage(sender, message, type) {
+            conversation.push({ sender, message, type });
+            saveConversation();
+        }
+
+        function getInformationView(viewName) {
+            const labels = { prevention: 'Preventive care', symptoms: 'Symptoms review', safety: 'Safety notes' };
+            if (!activeDiseaseDetails) {
+                return {
+                    title: labels[viewName],
+                    copy: 'Start a disease conversation in Health assistant to load information for that condition.',
+                    items: [`Ask about a disease first to see its specific ${labels[viewName].toLowerCase()} guidance.`]
+                };
+            }
+
+            const diseaseName = activeDiseaseDetails.name || activeDisease;
+            const details = {
+                prevention: {
+                    title: `${diseaseName}: Preventive care`,
+                    copy: `Prevention guidance for ${diseaseName}.`,
+                    items: activeDiseaseDetails.prevention || []
+                },
+                symptoms: {
+                    title: `${diseaseName}: Symptoms`,
+                    copy: `Common symptoms associated with ${diseaseName}. These do not confirm a diagnosis.`,
+                    items: activeDiseaseDetails.symptoms || []
+                },
+                safety: {
+                    title: `${diseaseName}: Safety notes`,
+                    copy: `Warning signs that need prompt professional attention for ${diseaseName}.`,
+                    items: activeDiseaseDetails.warning_signs || []
+                }
+            };
+            return details[viewName];
+        }
+
+        document.querySelectorAll('.nav-item').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach((item) => item.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.dataset.view === 'assistant') {
+                    assistantView.classList.remove('hidden');
+                    infoView.classList.add('hidden');
+                    return;
+                }
+
+                const view = getInformationView(button.dataset.view);
+                infoTitle.textContent = view.title;
+                infoCopy.textContent = view.copy;
+                infoList.className = 'guidance-list';
+                infoList.innerHTML = view.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+                assistantView.classList.add('hidden');
+                infoView.classList.remove('hidden');
+            });
+        });
+
+        function showApp() {
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            messageInput.focus();
+        }
+
+        function hideApp() {
+            loginScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+        }
+
+        async function loginUser(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value.trim();
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Login failed');
+                }
+
+                localStorage.setItem('healthguardToken', data.token || 'demo');
+                loginError.textContent = '';
+                showApp();
+            } catch (error) {
+                loginError.textContent = error.message || 'Invalid credentials';
+            }
+        }
+
+        loginForm.addEventListener('submit', loginUser);
+
+        const promptButtons = document.querySelectorAll('.prompt-chip');
+        promptButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                messageInput.value = button.dataset.prompt;
+                messageInput.focus();
+            });
+        });
+
+        document.getElementById('newChatBtn').addEventListener('click', () => {
+            chat.innerHTML = `
+                <div class="message bot">
+                    <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                    New session started. Ask me about symptoms, prevention, or safe self-care steps.
+                </div>
+            `;
+            messageInput.value = '';
+            messageInput.focus();
+            activeDisease = '';
+            activeDiseaseDetails = null;
+            selectedImageId = '';
+            localStorage.removeItem(conversationStorageKey);
+            document.querySelector('[data-view="assistant"]').click();
+        });
+
+        document.getElementById('historyBtn').addEventListener('click', () => {
+            const items = conversation.filter((item) => item.type === 'user').slice(-10).reverse();
+            infoTitle.textContent = 'Conversation history';
+            infoCopy.textContent = items.length ? 'Your recent questions are saved in this browser.' : 'No saved questions yet.';
+            infoList.className = 'history-list';
+            infoList.innerHTML = items.map((item, index) => `<li><button class="history-item" type="button" data-history-index="${index}">${escapeHtml(item.message)}</button></li>`).join('');
+            infoList.querySelectorAll('.history-item').forEach((button) => {
+                button.addEventListener('click', () => {
+                    messageInput.value = items[Number(button.dataset.historyIndex)].message;
+                    document.querySelector('[data-view="assistant"]').click();
+                    messageInput.focus();
+                });
+            });
+            assistantView.classList.add('hidden');
+            infoView.classList.remove('hidden');
+        });
+
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                selectedImageData = reader.result;
+                imagePreview.src = selectedImageData;
+                imagePreview.style.display = 'block';
+                uploadStatus.textContent = file.name;
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append('image', file);
+            fetch('/upload-image', { method: 'POST', body: formData })
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Upload failed');
+                    selectedImageId = data.image_id;
+                    uploadStatus.textContent = `${data.filename} uploaded`;
+                })
+                .catch((error) => {
+                    selectedImageId = '';
+                    uploadStatus.textContent = error.message || 'Photo upload failed';
+                });
+        });
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function appendMessage(sender, message, type, remember = true) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message ${type}`;
+
+            const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
+            wrapper.innerHTML = `
+                <div class="message-header"><span class="dot"></span> ${sender}</div>
+                ${safeMessage}
+            `;
+
+            chat.appendChild(wrapper);
+            chat.scrollTop = chat.scrollHeight;
+            if (remember) recordMessage(sender, message, type);
+        }
+
+        function appendMetaBoxes(data) {
+            if (data.medical_concepts && typeof data.medical_concepts === 'object') {
+                const concepts = data.medical_concepts;
+                const detected = [];
+                if (Array.isArray(concepts.diseases) && concepts.diseases.length) detected.push(...concepts.diseases);
+                if (concepts.intent) detected.push(concepts.intent);
+                if (Array.isArray(concepts.keywords) && concepts.keywords.length) detected.push(...concepts.keywords);
+
+                if (detected.length > 0) {
+                    const meta = document.createElement('div');
+                    meta.className = 'meta-box';
+                    meta.innerHTML = `<strong>Medical concepts detected:</strong><br>${escapeHtml(detected.join(', '))}`;
+                    chat.appendChild(meta);
+                }
+            }
+
+            if (data.emergency_signs && data.emergency_signs.length > 0) {
+                const emergency = document.createElement('div');
+                emergency.className = 'emergency-box';
+                emergency.innerHTML = '<strong>Emergency warning:</strong><br>Possible emergency-related symptoms were detected. Please seek urgent professional medical attention when appropriate.';
+                chat.appendChild(emergency);
+            }
+        }
+
+        async function sendMessage() {
+            const enteredMessage = messageInput.value.trim();
+            const message = correctMessage(enteredMessage);
+            if (!message) return;
+
+            appendMessage('You', message, 'user');
+            messageInput.value = '';
+            statusText.textContent = 'Thinking...';
+            sendBtn.disabled = true;
+
+            const loading = document.createElement('div');
+            loading.className = 'message bot';
+            loading.innerHTML = '<div class="message-header"><span class="dot"></span> HealthGuard AI</div>Thinking...';
+            chat.appendChild(loading);
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        image_data: selectedImageData || null,
+                        image_id: selectedImageId || null,
+                        context_disease: activeDisease || null
+                    })
+                });
+
+                const data = await response.json();
+                chat.removeChild(chat.lastElementChild);
+
+                if (!response.ok) {
+                    appendMessage('HealthGuard AI', data.detail || 'Sorry, something went wrong while processing your request.', 'bot');
+                    statusText.textContent = 'Error';
+                    return;
+                }
+
+                if (data.medical_concepts && data.medical_concepts.diseases && data.medical_concepts.diseases.length) {
+                    activeDisease = data.medical_concepts.diseases[0];
+                }
+                if (data.disease_details) {
+                    activeDiseaseDetails = data.disease_details;
+                }
+
+                const bot = document.createElement('div');
+                bot.className = 'message bot';
+                bot.innerHTML = `
+                    <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                    ${escapeHtml(data.answer || 'No answer returned.').replace(/\n/g, '<br>')}
+                `;
+                chat.appendChild(bot);
+
+                appendMetaBoxes(data);
+                recordMessage('HealthGuard AI', data.answer || 'No answer returned.', 'bot');
+                selectedImageData = '';
+                selectedImageId = '';
+                imageInput.value = '';
+                imagePreview.style.display = 'none';
+                uploadStatus.textContent = 'Ready for a photo';
+                chat.scrollTop = chat.scrollHeight;
+                statusText.textContent = 'Complete';
+            } catch (error) {
+                chat.removeChild(chat.lastElementChild);
+                appendMessage('HealthGuard AI', 'Unable to connect to the HealthGuard server. Please try again.', 'bot');
+                statusText.textContent = 'Offline';
+                console.error(error);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+    </script>
+</body>
+</html>

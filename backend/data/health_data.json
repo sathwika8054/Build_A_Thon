@@ -1,0 +1,369 @@
+{
+  "dengue": {
+    "name": "Dengue",
+    "category": "Infectious disease",
+    "symptoms": [
+      "fever",
+      "headache",
+      "pain behind the eyes",
+      "muscle pain",
+      "joint pain",
+      "nausea",
+      "vomiting",
+      "rash"
+    ],
+    "transmission": "Dengue is primarily transmitted through the bite of infected Aedes mosquitoes.",
+    "prevention": [
+      "Use mosquito repellent.",
+      "Wear clothing that covers the arms and legs.",
+      "Reduce standing water around homes.",
+      "Use screens or other measures to reduce mosquito exposure."
+    ],
+    "warning_signs": [
+      "severe abdominal pain",
+      "persistent vomiting",
+      "bleeding",
+      "extreme weakness",
+      "difficulty breathing"
+    ]
+  },
+  "malaria": {
+    "name": "Malaria",
+    "category": "Infectious disease",
+    "symptoms": [
+      "fever",
+      "chills",
+      "sweating",
+      "headache",
+      "body aches",
+      "nausea",
+      "fatigue"
+    ],
+    "transmission": "Malaria is transmitted through the bites of infected Anopheles mosquitoes.",
+    "prevention": [
+      "Use insect repellent.",
+      "Use mosquito nets where appropriate.",
+      "Wear protective clothing.",
+      "Follow recommended malaria prevention measures when traveling to affected areas."
+    ],
+    "warning_signs": [
+      "confusion",
+      "difficulty breathing",
+      "seizures",
+      "severe weakness",
+      "loss of consciousness"
+    ]
+  },
+  "influenza": {
+    "name": "Influenza",
+    "category": "Respiratory infection",
+    "symptoms": [
+      "fever",
+      "cough",
+      "sore throat",
+      "body aches",
+      "headache",
+      "fatigue"
+    ],
+    "transmission": "Influenza can spread through respiratory droplets and particles from an infected person.",
+    "prevention": [
+      "Stay home when sick when possible.",
+      "Improve ventilation.",
+      "Practice good hand hygiene.",
+      "Consider recommended influenza vaccination."
+    ],
+    "warning_signs": [
+      "difficulty breathing",
+      "chest pain",
+      "severe weakness",
+      "confusion",
+      "symptoms that improve and then become significantly worse"
+    ]
+  },
+  "covid": {
+    "name": "COVID-19",
+    "category": "Respiratory infection",
+    "symptoms": [
+      "fever",
+      "cough",
+      "fatigue",
+      "loss of taste or smell",
+      "shortness of breath",
+      "body aches"
+    ],
+    "transmission": "COVID-19 spreads mainly through respiratory droplets and aerosols from infected people.",
+    "prevention": [
+      "Wear a mask in crowded or poorly ventilated spaces.",
+      "Wash hands regularly.",
+      "Improve ventilation indoors.",
+      "Follow local public-health guidance and vaccination recommendations."
+    ],
+    "warning_signs": [
+      "trouble breathing",
+      "blue lips or face",
+      "confusion",
+      "chest pain",
+      "persistent chest pressure"
+    ]
+  },
+  "tuberculosis": {
+    "name": "Tuberculosis",
+    "category": "Infectious disease",
+    "symptoms": [
+      "persistent cough",
+      "fever",
+      "night sweats",
+      "weight loss",
+      "fatigue",
+      "chest pain"
+    ],
+    "transmission": "Tuberculosis spreads through infectious droplets released when a person with active disease coughs or sneezes.",
+    "prevention": [
+      "Seek early diagnosis and treatment.",
+      "Cover coughs and sneezes.",
+      "Avoid close contact with untreated infectious cases.",
+      "Follow public-health screening and treatment guidance."
+    ],
+    "warning_signs": [
+      "blood in sputum",
+      "severe breathing difficulty",
+      "persistent fever",
+      "weight loss with cough",
+      "severe chest pain"
+    ]
+  },
+  "typhoid": {
+    "name": "Typhoid Fever",
+    "category": "Food- and water-borne infection",
+    "symptoms": [
+      "fever",
+      "weakness",
+      "stomach pain",
+      "headache",
+      "loss of appetite",
+      "diarrhea or constipation"
+    ],
+    "transmission": "Typhoid fever is spread through contaminated food or water and poor hygiene.",
+    "prevention": [
+      "Drink safe, clean water.",
+      "Use proper sanitation and hand hygiene.",
+      "Avoid raw or contaminated foods.",
+      "Follow vaccination guidance in high-risk areas."
+    ],
+    "warning_signs": [
+      "severe abdominal pain",
+      "persistent vomiting",
+      "confusion",
+      "bloody stools",
+      "severe weakness"
+    ]
+  },
+  "hepatitis": {
+    "name": "Hepatitis",
+    "category": "Liver infection",
+    "symptoms": [
+      "fatigue",
+      "jaundice",
+      "abdominal pain",
+      "nausea",
+      "vomiting",
+      "dark urine"
+    ],
+    "transmission": "Hepatitis can spread by contaminated food or water, blood, or body fluids depending on the type.",
+    "prevention": [
+      "Practice safe sex and safe injection practices.",
+      "Avoid sharing razors or needles.",
+      "Use clean water and hygiene practices.",
+      "Follow medical vaccination guidance when available."
+    ],
+    "warning_signs": [
+      "severe abdominal swelling",
+      "confusion",
+      "yellowing of eyes",
+      "vomiting blood",
+      "extreme weakness"
+    ]
+  },
+  "cholera": {
+    "name": "Cholera",
+    "category": "Waterborne disease",
+    "symptoms": [
+      "watery diarrhea",
+      "vomiting",
+      "dehydration",
+      "thirst",
+      "muscle cramps",
+      "weakness"
+    ],
+    "transmission": "Cholera is spread through contaminated water and food.",
+    "prevention": [
+      "Drink safe water.",
+      "Wash hands regularly.",
+      "Avoid unsafe food and water.",
+      "Use proper sanitation and waste disposal."
+    ],
+    "warning_signs": [
+      "severe dehydration",
+      "fainting",
+      "little or no urine",
+      "very dry mouth",
+      "rapid pulse"
+    ]
+  },
+  "pneumonia": {
+    "name": "Pneumonia",
+    "category": "Lung infection",
+    "symptoms": [
+      "fever",
+      "cough",
+      "shortness of breath",
+      "chest pain",
+      "fatigue",
+      "rapid breathing"
+    ],
+    "transmission": "Pneumonia can be caused by bacteria, viruses, or fungi and may spread through respiratory droplets.",
+    "prevention": [
+      "Practice good hand hygiene.",
+      "Avoid smoking and secondhand smoke.",
+      "Improve indoor ventilation.",
+      "Follow vaccination and treatment guidance when appropriate."
+    ],
+    "warning_signs": [
+      "difficulty breathing",
+      "blue lips",
+      "severe fever",
+      "confusion",
+      "chest pain"
+    ]
+  },
+  "diabetes": {
+    "name": "Diabetes",
+    "category": "Metabolic condition",
+    "symptoms": [
+      "excessive thirst",
+      "frequent urination",
+      "fatigue",
+      "blurred vision",
+      "slow wound healing",
+      "unexplained weight loss"
+    ],
+    "transmission": "Diabetes is not spread from person to person; it is a chronic metabolic condition influenced by genetics and lifestyle factors.",
+    "prevention": [
+      "Maintain a balanced diet.",
+      "Exercise regularly.",
+      "Monitor blood sugar when indicated.",
+      "Follow clinical guidance for weight and lifestyle management."
+    ],
+    "warning_signs": [
+      "severe dehydration",
+      "confusion",
+      "vomiting",
+      "difficulty breathing",
+      "loss of consciousness"
+    ]
+  },
+  "asthma": {
+    "name": "Asthma",
+    "category": "Respiratory condition",
+    "symptoms": [
+      "wheezing",
+      "shortness of breath",
+      "coughing",
+      "chest tightness",
+      "trouble sleeping",
+      "fatigue"
+    ],
+    "transmission": "Asthma is not infectious and is not transmitted from person to person.",
+    "prevention": [
+      "Avoid triggers such as smoke, dust, and pollen.",
+      "Follow prescribed inhaler plans.",
+      "Keep indoor air clean and ventilated.",
+      "Seek regular follow-up with a clinician."
+    ],
+    "warning_signs": [
+      "severe breathing difficulty",
+      "cyanosis",
+      "inability to speak full sentences",
+      "persistent wheezing",
+      "chest tightness that is worsening"
+    ]
+  },
+  "piles": {
+    "name": "Piles (Hemorrhoids)",
+    "category": "Anorectal condition",
+    "symptoms": [
+      "pain or discomfort around the anus",
+      "itching",
+      "bright red blood during bowel movements",
+      "swelling or a lump",
+      "irritation"
+    ],
+    "transmission": "Piles are not infectious and do not spread between people.",
+    "prevention": [
+      "Eat fiber-rich foods and drink enough water.",
+      "Avoid straining during bowel movements.",
+      "Do not sit on the toilet for long periods.",
+      "Stay physically active and treat constipation with clinical guidance."
+    ],
+    "warning_signs": [
+      "heavy or persistent rectal bleeding",
+      "black stools",
+      "severe pain",
+      "dizziness or fainting",
+      "unexplained weight loss"
+    ]
+  },
+  "tonsillitis": {
+    "name": "Tonsillitis",
+    "category": "Throat infection or inflammation",
+    "symptoms": [
+      "sore throat",
+      "swollen tonsils",
+      "painful swallowing",
+      "fever",
+      "swollen neck glands",
+      "white patches on the tonsils"
+    ],
+    "transmission": "Infectious tonsillitis can spread through respiratory droplets and close contact, depending on its cause.",
+    "prevention": [
+      "Wash hands regularly.",
+      "Avoid sharing cups, utensils, or toothbrushes.",
+      "Cover coughs and sneezes.",
+      "Stay home while feverish and follow clinical treatment advice."
+    ],
+    "warning_signs": [
+      "difficulty breathing",
+      "inability to swallow fluids",
+      "drooling",
+      "severe one-sided throat swelling",
+      "dehydration"
+    ]
+  },
+  "common_cold": {
+    "name": "Common Cold",
+    "category": "Viral upper-respiratory infection",
+    "symptoms": [
+      "runny or blocked nose",
+      "sneezing",
+      "sore throat",
+      "mild cough",
+      "mild fever",
+      "tiredness"
+    ],
+    "transmission": "The common cold is usually caused by respiratory viruses that spread through droplets, close contact, or contaminated surfaces.",
+    "prevention": [
+      "Wash hands regularly.",
+      "Cover coughs and sneezes.",
+      "Avoid sharing cups and utensils.",
+      "Improve ventilation and avoid close contact while unwell.",
+      "Rest and drink fluids while recovering."
+    ],
+    "warning_signs": [
+      "difficulty breathing",
+      "chest pain",
+      "dehydration",
+      "fever that is persistent or worsening",
+      "symptoms that improve and then become significantly worse"
+    ]
+  }
+}
