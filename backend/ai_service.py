@@ -109,22 +109,47 @@ def fallback_response(
     # If RAG returned nothing
     # --------------------------------------------------------
 
-    if not answer:
+    if not answer or len(answer) < 5:
+        from knowledge_base import search_health_data
+        matches = search_health_data(user_query)
+        if matches:
+            first_match = matches[0]["information"]
+            disease_name = first_match.get("name", "Unknown Disease")
+            symptoms = ", ".join(first_match.get("symptoms", []))
+            transmission = first_match.get("transmission", "N/A")
+            prevention = "\n- " + "\n- ".join(first_match.get("prevention", []))
+            warning_signs = ", ".join(first_match.get("warning_signs", []))
+            
+            if language == "telugu":
+                return (
+                    f"హెల్త్‌గార్డ్ నాలెడ్జ్ బేస్ ఆధారంగా **{disease_name}** సమాచారం ఇక్కడ ఉంది:\n\n"
+                    f"🔴 **లక్షణాలు:** {symptoms}\n"
+                    f"🔍 **వ్యాప్తి:** {transmission}\n"
+                    f"🛡️ **నివారణ చర్యలు:** {prevention}\n"
+                    f"⚠️ **హెచ్చరిక సంకేతాలు:** {warning_signs}\n\n"
+                    f"వైద్య చికిత్స లేదా ఖచ్చితమైన రోగ నిర్ధారణ కోసం దయచేసి అర్హత కలిగిన ఆరోగ్య నిపుణుడిని సంప్రదించండి."
+                )
+            else:
+                return (
+                    f"Based on the HealthGuard knowledge base, here is the information for **{disease_name}**:\n\n"
+                    f"🔴 **Symptoms:** {symptoms}\n"
+                    f"🔍 **Transmission:** {transmission}\n"
+                    f"🛡️ **Prevention:** {prevention}\n"
+                    f"⚠️ **Warning Signs:** {warning_signs}\n\n"
+                    f"Please consult a qualified healthcare professional for professional medical diagnosis and treatment."
+                )
+        
         if language == "telugu":
             return (
-                "ఈ ప్రశ్నకి సురక్షితంగా సమాధానం ఇవ్వడానికి హెల్త్‌గార్డ్ నాలెడ్జ్ బేస్‌లో తగినంత సమాచారం లభించలేదు.\n\n"
-                "వైద్య సలహా కోసం దయచేసి అర్హత కలిగిన ఆరోగ్య నిపుణుడిని సంప్రదించండి.\n\n"
-                "⚠️ ఈ సమాచారం సాధారణ విద్యా ప్రయోజనాల కోసం మాత్రమే మరియు ఇది వైద్య నిర్ధారణ కాదు."
+                "క్షమించండి, మీ ప్రశ్నకు సరిపోయే సమాచారం మా లోకల్ డేటాబేస్‌లో లభించలేదు.\n\n"
+                "దయచేసి డెంగ్యూ, మలేరియా, టైఫాయిడ్, కోవిడ్-19, కలరా లేదా క్షయ (Tuberculosis) వంటి వ్యాధుల గురించి అడగండి.\n\n"
+                "⚠️ వైద్య సలహా కోసం నిపుణుడిని సంప్రదించండి."
             )
         else:
             return (
-                "I could not find enough relevant information "
-                "in the HealthGuard knowledge base to answer "
-                "this question safely.\n\n"
-                "Please consult a qualified healthcare professional "
-                "for medical advice.\n\n"
-                "⚠️ This information is for general educational "
-                "purposes and is not a medical diagnosis."
+                "I couldn't find a direct match for your specific query in our local database.\n\n"
+                "However, we have detailed guidelines on Dengue, Malaria, Typhoid, COVID-19, Cholera, and Tuberculosis (TB). Please ask about these conditions to view recommendations.\n\n"
+                "⚠️ Please consult a qualified healthcare professional for medical advice."
             )
 
 
@@ -431,17 +456,60 @@ def generate_chatbot_consultation_response(
     language: str = "english",
     rag_context: str = None
 ):
-    if not (OPENAI_API_KEY and client):
+    # Define local pre-consultation helper for offline fallback
+    def get_offline_consultation_response():
+        user_turns = [turn for turn in (history or []) if turn.get("type") == "user"]
+        turn_count = len(user_turns)
+        
+        searchable_text = (user_query + " " + " ".join([t.get("message", "") for t in (history or [])])).lower()
+        
+        disease_name = "your symptoms"
+        if "dengue" in searchable_text:
+            disease_name = "Dengue"
+        elif "malaria" in searchable_text:
+            disease_name = "Malaria"
+        elif "typhoid" in searchable_text:
+            disease_name = "Typhoid"
+        elif "covid" in searchable_text:
+            disease_name = "COVID-19"
+        elif "cholera" in searchable_text:
+            disease_name = "Cholera"
+        elif "tuberculosis" in searchable_text or "tb" in searchable_text:
+            disease_name = "Tuberculosis"
+
         if language == "telugu":
-            return (
-                "ఈ ప్రతిస్పందనను విజయవంతంగా పూర్తి చేయడానికి తగినంత సర్వర్ కనెక్టివిటీ సమాచారం లభించలేదు.\n\n"
-                "వైద్య సలహా కోసం దయచేసి అర్హత కలిగిన ఆరోగ్య నిపుణుడిని సంప్రదించండి."
-            )
+            if turn_count == 0:
+                return "నమస్కారం! నేను మీ హెల్త్‌గార్డ్ కన్సల్టేషన్ అసిస్టెంట్‌ని. మీకు జ్వరం లేదా ఇతర లక్షణాలు ఎప్పటి నుండి ఉన్నాయి?"
+            elif turn_count == 1:
+                return f"ధన్యవాదాలు. మీకు {disease_name} కి సంబంధించిన జ్వరం కాకుండా ఒళ్లు నొప్పులు, వికారం లేదా తలనొప్పి వంటి ఇతర లక్షణాలు కూడా ఉన్నాయా?"
+            elif turn_count == 2:
+                return "మీకు తీవ్రమైన కడుపు నొప్పి, వాంతులు లేదా శ్వాస తీసుకోవడంలో ఇబ్బంది వంటి ఏవైనా తీవ్రమైన హెచ్చరిక సంకేతాలు ఉన్నాయా?"
+            else:
+                return (
+                    f"సేకరించిన సమాచారం ప్రకారం: మీ లక్షణాలు {disease_name} తో సరిపోలవచ్చు.\n\n"
+                    "సూచనలు:\n"
+                    "1. తగినంత విశ్రాంతి తీసుకోండి మరియు ద్రవపదార్థాలు ఎక్కువగా తీసుకోండి.\n"
+                    "2. దయచేసి ఖచ్చితమైన నిర్ధారణ మరియు చికిత్స కోసం ఒక వైద్యుడిని సంప్రదించండి.\n\n"
+                    "⚠️ గమనిక: ఇది సాధారణ సమాచారం మాత్రమే, ఇది వైద్య సలహా కాదు."
+                )
         else:
-            return (
-                "I'm sorry, I cannot perform the clinical consultation right now due to server configuration issues.\n\n"
-                "Please consult a qualified healthcare professional for medical advice."
-            )
+            if turn_count == 0:
+                return "Hello! I am your HealthGuard pre-consultation assistant. Since when have you been experiencing these symptoms?"
+            elif turn_count == 1:
+                return f"Thank you. Along with the symptoms, do you have any other associated signs like headache, body aches, joint pain, or nausea?"
+            elif turn_count == 2:
+                return "Have you noticed any severe warning signs like persistent vomiting, extreme weakness, bleeding, or difficulty breathing?"
+            else:
+                return (
+                    f"Based on the symptoms described, this may align with {disease_name}.\n\n"
+                    "Educational Guidance:\n"
+                    "- Rest well and stay fully hydrated.\n"
+                    "- Please consult a healthcare professional for diagnosis and treatment.\n\n"
+                    "⚠️ Notice: This information is for educational purposes and is not a medical diagnosis."
+                )
+
+    if not (OPENAI_API_KEY and client) or "your_openai_api" in OPENAI_API_KEY:
+        return get_offline_consultation_response()
 
     input_messages = []
 
@@ -480,8 +548,5 @@ Respond in the {language} language. Follow the clinical instruction strictly. As
         )
         return response.output_text
     except Exception as e:
-        print("Error in chatbot consultation generation:", e)
-        if language == "telugu":
-            return "క్షమించండి, మీ అభ్యర్థనను ప్రాసెస్ చేయడంలో లోపం సంభవించింది."
-        else:
-            return "Sorry, an error occurred while processing your request."
+        print("Error in chatbot consultation generation (falling back to rule-based pre-consultation):", e)
+        return get_offline_consultation_response()
