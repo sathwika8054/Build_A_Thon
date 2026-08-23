@@ -1158,6 +1158,7 @@
             loginScreen.classList.add('hidden');
             appScreen.classList.remove('hidden');
             document.getElementById('chatbotWidget').classList.remove('hidden');
+            loadChatbotHistory();
             messageInput.focus();
         }
 
@@ -1532,6 +1533,62 @@
         });
 
         // ================================================
+        // CHATBOT WIDGET PERSISTENCE & CHATGPT SIMULATOR
+        // ================================================
+
+        function typeOutBotResponse(element, text) {
+            let index = 0;
+            const words = text.split(' ');
+            const timer = setInterval(() => {
+                if (index < words.length) {
+                    element.innerHTML = escapeHtml(words.slice(0, index + 1).join(' ')).replace(/\n/g, '<br>');
+                    index++;
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 30);
+        }
+
+        async function loadChatbotHistory() {
+            try {
+                const token = localStorage.getItem('healthguardToken');
+                if (!token) return;
+
+                const response = await fetch('/chat-history', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) return;
+
+                const historyData = await response.json();
+                
+                chatbotMessages.innerHTML = `
+                    <div class="chatbot-msg bot">
+                        Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
+                    </div>
+                `;
+
+                historyData.reverse().forEach(item => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'chatbot-msg user';
+                    userDiv.textContent = item.question;
+                    chatbotMessages.appendChild(userDiv);
+
+                    const botDiv = document.createElement('div');
+                    botDiv.className = 'chatbot-msg bot';
+                    botDiv.innerHTML = escapeHtml(item.answer).replace(/\n/g, '<br>');
+                    chatbotMessages.appendChild(botDiv);
+                });
+
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            } catch (error) {
+                console.error('Failed to load chat history:', error);
+            }
+        }
+
+        // ================================================
         // FLOATING CHATBOT WIDGET LOGIC
         // ================================================
         const chatbotWidget = document.getElementById('chatbotWidget');
@@ -1549,6 +1606,7 @@
             chatbotWindow.classList.toggle('hidden');
             if (!chatbotWindow.classList.contains('hidden')) {
                 chatbotInput.focus();
+                loadChatbotHistory();
             }
         });
 
@@ -1659,10 +1717,10 @@
                     return;
                 }
 
-                // Render answer
+                // Render answer with typing simulator (ChatGPT style)
                 let responseText = data.answer || 'No answer returned.';
-                botMsgDiv.innerHTML = escapeHtml(responseText).replace(/\n/g, '<br>');
                 chatbotMessages.appendChild(botMsgDiv);
+                typeOutBotResponse(botMsgDiv, responseText);
 
                 // Add emergency alert marker if triggered
                 if (data.emergency_signs && data.emergency_signs.length > 0) {
