@@ -984,11 +984,23 @@ def chatbot(
             except Exception as e:
                 print("Translation error in /chatbot:", e)
 
+    # Build RAG context from pre-consultation search
+    health_information = search_health_data(processed_message)
+    rag_context = ""
+    if health_information:
+        rag_context = build_rag_context(
+            user_query=processed_message,
+            nlp_analysis=extract_nlp_concepts(processed_message),
+            health_information=health_information,
+            related_concepts=get_related_concepts(extract_graph_concepts(processed_message))
+        )
+
     # Generate chatbot medical consultation response
     answer = generate_chatbot_consultation_response(
         user_query=user_message,
         history=request.history,
-        language=language
+        language=language,
+        rag_context=rag_context
     )
 
     # Save to chat history table if authenticated

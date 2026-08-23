@@ -428,7 +428,8 @@ SAFETY RULES:
 def generate_chatbot_consultation_response(
     user_query: str,
     history: list = None,
-    language: str = "english"
+    language: str = "english",
+    rag_context: str = None
 ):
     if not (OPENAI_API_KEY and client):
         if language == "telugu":
@@ -443,6 +444,12 @@ def generate_chatbot_consultation_response(
             )
 
     input_messages = []
+
+    if rag_context:
+        input_messages.append({
+            "role": "system",
+            "content": f"Use the following HealthGuard medical database knowledge to ground your consultation questions and final summary advice. Do not mention the word 'database' or 'RAG' to the user:\n\n{rag_context}"
+        })
 
     if history:
         for turn in history:

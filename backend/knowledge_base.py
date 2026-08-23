@@ -27,8 +27,6 @@ def search_health_data(query: str):
     normalized_query = normalize(query)
 
     matched_disease_keys = set(concepts.get("diseases", []))
-    if not matched_disease_keys:
-        return []
 
     candidate_keys = []
     for key, disease in data.items():
@@ -41,9 +39,6 @@ def search_health_data(query: str):
             " ".join(disease.get("warning_signs", [])),
             key,
         ]).lower()
-
-        if key not in matched_disease_keys:
-            continue
 
         score = 0
         query_tokens = set(normalized_query.split())
@@ -59,8 +54,14 @@ def search_health_data(query: str):
             if token and token in searchable_tokens:
                 score += 2
 
-        if key in concepts.get("diseases", []) or any(item in normalized_query for item in [normalize(key), normalize(disease.get("name", ""))]):
-            score += 10
+        # Symptom match boosts
+        symptoms_flat = [normalize(s) for s in disease.get("symptoms", [])]
+        for token in query_tokens:
+            if token in symptoms_flat:
+                score += 5
+
+        if key in matched_disease_keys:
+            score += 15
 
         if score > 0:
             candidate_keys.append((key, score, searchable_text))
