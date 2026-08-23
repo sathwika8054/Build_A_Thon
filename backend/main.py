@@ -8,7 +8,8 @@ from fastapi import (
     UploadFile,
     File,
     HTTPException,
-    Depends
+    Depends,
+    Header
 )
 
 from fastapi.responses import FileResponse
@@ -26,7 +27,7 @@ from database import (
     get_db
 )
 
-from models import User
+from models import User, ChatHistory
 
 # --------------------------------
 # Authentication
@@ -519,7 +520,9 @@ def logout():
 
 @app.post("/chat")
 def chat(
-    request: ChatRequest
+    request: ChatRequest,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db)
 ):
 
     # --------------------------------
@@ -698,6 +701,26 @@ def chat(
         disease_details = health_information[0]["information"]
         if language == "telugu":
             disease_details = translate_disease_details_to_telugu(disease_details)
+
+    # --------------------------------
+    # Save chat history to database (if authenticated user)
+    # --------------------------------
+
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("user_id")
+            if user_id:
+                chat_record = ChatHistory(
+                    user_id=user_id,
+                    question=user_message,
+                    answer=final_answer
+                )
+                db.add(chat_record)
+                db.commit()
+        except Exception as db_err:
+            print("Failed to save chat history to database:", db_err)
 
     return {
 
@@ -886,3 +909,34 @@ async def upload_image(
             "error": str(e)
 
         }
+
+
+# ================================================
+# CHAT HISTORY ENDPOINT
+# ================================================
+
+@app.get("/chat-history")
+def get_user_chat_history(
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db)
+):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    token = authorization.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+        
+    history = db.query(ChatHistory).filter(ChatHistory.user_id == user_id).order_by(ChatHistory.created_at.desc()).limit(20).all()
+    
+    return [
+        {
+            "id": item.id,
+            "question": item.question,
+            "answer": item.answer,
+            "created_at": item.created_at.isoformat()
+        } for item in history
+    ]
