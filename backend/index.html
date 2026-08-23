@@ -730,6 +730,21 @@
             color: white;
         }
 
+        .chatbot-new-chat-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chatbot-new-chat-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         .chatbot-messages-area {
             flex: 1;
             padding: 20px;
@@ -1059,7 +1074,10 @@
                     <span class="chatbot-status-dot"></span>
                     HealthGuard AI Bot
                 </div>
-                <button id="chatbotClose" class="chatbot-close-btn">&times;</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="chatbotNewChatBtn" class="chatbot-new-chat-btn" title="New Chat">New Chat</button>
+                    <button id="chatbotClose" class="chatbot-close-btn">&times;</button>
+                </div>
             </div>
             <div id="chatbotMessages" class="chatbot-messages-area">
                 <div class="chatbot-msg bot">
@@ -1732,6 +1750,21 @@
 
         chatbotClose.addEventListener('click', () => {
             chatbotWindow.classList.add('hidden');
+        });
+
+        const chatbotNewChatBtn = document.getElementById('chatbotNewChatBtn');
+        chatbotNewChatBtn.addEventListener('click', () => {
+            conversation = [];
+            localStorage.setItem(conversationStorageKey, JSON.stringify([]));
+            
+            chatbotMessages.innerHTML = `
+                <div class="chatbot-msg bot">
+                    Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
+                </div>
+            `;
+            
+            activeDisease = null;
+            activeDiseaseDetails = null;
         });
 
         // Speech recognition for Chatbot
