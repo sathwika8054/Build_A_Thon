@@ -72,6 +72,55 @@ from image_service import analyze_medical_image
 
 
 # ================================================
+# TRANSLATION HELPER FOR DISEASE DETAILS
+# ================================================
+
+def translate_disease_details_to_telugu(details: dict) -> dict:
+    from ai_service import client, OPENAI_API_KEY
+    if not (OPENAI_API_KEY and client) or not details:
+        return details
+    
+    try:
+        import json
+        payload_to_translate = {
+            "name": details.get("name", ""),
+            "category": details.get("category", ""),
+            "transmission": details.get("transmission", ""),
+            "symptoms": details.get("symptoms", []),
+            "prevention": details.get("prevention", []),
+            "warning_signs": details.get("warning_signs", [])
+        }
+        
+        prompt = f"""
+Translate the following JSON values from English to Telugu script.
+Keep key names exactly identical. Ensure translation is medical/clinical quality.
+Return only the translated JSON block, no markdown code block formatting, no other explanation text.
+
+{json.dumps(payload_to_translate)}
+"""
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            instructions="You are a medical translator translating English health statistics and descriptions to Telugu script.",
+            input=prompt
+        )
+        translated_json = response.output_text.strip()
+        
+        if "```json" in translated_json:
+            translated_json = translated_json.split("```json")[1].split("```")[0].strip()
+        elif "```" in translated_json:
+            translated_json = translated_json.split("```")[1].split("```")[0].strip()
+            
+        translated_data = json.loads(translated_json)
+        
+        new_details = details.copy()
+        new_details.update(translated_data)
+        return new_details
+    except Exception as e:
+        print("Error translating disease details to Telugu:", e)
+        return details
+
+
+# ================================================
 # LOAD ENVIRONMENT VARIABLES
 # ================================================
 
@@ -128,6 +177,8 @@ class ChatRequest(BaseModel):
     message: str
     image_id: str | None = None
     image_data: str | None = None
+    language: str | None = "english"
+    history: list | None = None
 
 
 class LoginRequest(BaseModel):
@@ -451,6 +502,18 @@ def me(
 
 
 # ================================================
+# LOGOUT ENDPOINT
+# ================================================
+
+@app.post("/logout")
+def logout():
+    return {
+        "success": True,
+        "message": "Logged out successfully"
+    }
+
+
+# ================================================
 # CHAT ENDPOINT
 # ================================================
 
@@ -464,6 +527,7 @@ def chat(
     # --------------------------------
 
     user_message = request.message.strip()
+    language = request.language or "english"
 
     if not user_message:
 
@@ -476,13 +540,29 @@ def chat(
             "sources_found": 0
         }
 
+    # Translate Telugu to English for concept matching and data searching
+    processed_message = user_message
+    if language == "telugu":
+        from ai_service import OPENAI_API_KEY, client
+        if OPENAI_API_KEY and client:
+            try:
+                translation_response = client.responses.create(
+                    model="gpt-4.1-mini",
+                    instructions="You are a translation assistant. Translate the user query from Telugu to English. Output only the translated English text, nothing else.",
+                    input=f"Translate: {user_message}"
+                )
+                translated_text = translation_response.output_text.strip()
+                if translated_text:
+                    processed_message = translated_text
+            except Exception as e:
+                print("Translation error in /chat:", e)
 
     # --------------------------------
     # Emergency check
     # --------------------------------
 
     emergency_signs = check_emergency(
-        user_message
+        processed_message
     )
 
 
@@ -491,7 +571,7 @@ def chat(
     # --------------------------------
 
     graph_concepts = extract_graph_concepts(
-        user_message
+        processed_message
     )
 
 
@@ -500,7 +580,7 @@ def chat(
     # --------------------------------
 
     nlp_concepts = extract_nlp_concepts(
-        user_message
+        processed_message
     )
 
 
@@ -517,7 +597,7 @@ def chat(
     # Search knowledge base
     # --------------------------------
 
-    search_query = user_message
+    search_query = processed_message
 
     if isinstance(
         nlp_concepts,
@@ -544,7 +624,7 @@ def chat(
 
     rag_context = build_rag_context(
 
-        user_query=user_message,
+        user_query=processed_message,
 
         nlp_analysis=nlp_concepts,
 
@@ -564,7 +644,11 @@ def chat(
 
             user_query=user_message,
 
-            rag_context=rag_context
+            rag_context=rag_context,
+
+            language=language,
+
+            history=request.history
         )
 
     else:
@@ -609,6 +693,12 @@ def chat(
     # Final response
     # --------------------------------
 
+    disease_details = None
+    if health_information:
+        disease_details = health_information[0]["information"]
+        if language == "telugu":
+            disease_details = translate_disease_details_to_telugu(disease_details)
+
     return {
 
         "answer": final_answer,
@@ -623,7 +713,9 @@ def chat(
 
         "sources_found": len(
             health_information
-        )
+        ),
+
+        "disease_details": disease_details
     }
 
 
@@ -735,6 +827,23 @@ async def upload_image(
 
 
         # --------------------------------
+        # Extract concepts & disease details
+        # --------------------------------
+
+        concepts = extract_graph_concepts(analysis)
+        emergency_signs = check_emergency(analysis)
+
+        active_disease = None
+        disease_details = None
+
+        if concepts.get("diseases"):
+            active_disease = concepts["diseases"][0]
+            health_info = search_health_data(active_disease)
+            if health_info:
+                disease_details = health_info[0]["information"]
+
+
+        # --------------------------------
         # Return result
         # --------------------------------
 
@@ -751,7 +860,15 @@ async def upload_image(
                 "analyzed successfully"
             ),
 
-            "analysis": analysis
+            "analysis": analysis,
+
+            "active_disease": active_disease,
+
+            "disease_details": disease_details,
+
+            "medical_concepts": concepts,
+
+            "emergency_signs": emergency_signs
 
         }
 

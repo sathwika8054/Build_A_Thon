@@ -622,10 +622,48 @@
                 max-width: 92%;
             }
         }
+
+        .voice-btn:hover {
+            background: #f1f5f9 !important;
+            transform: scale(1.05);
+        }
+        .voice-btn.recording {
+            background: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 
 <body>
+    <div id="resetScreen" class="login-screen hidden">
+        <div class="login-card">
+            <div class="brand">
+                <div class="brand-mark">✚</div>
+                <span>HealthGuard AI</span>
+            </div>
+            <h2>Reset password</h2>
+            <p>Update your password securely using your current credentials.</p>
+            <form id="resetPasswordForm">
+                <label for="resetUser">Username or email</label>
+                <input id="resetUser" type="text" required />
+                <label for="resetCurrentPass">Current password</label>
+                <input id="resetCurrentPass" type="password" required />
+                <label for="resetNewPass">New password</label>
+                <input id="resetNewPass" type="password" minlength="8" required />
+                <button type="submit" class="primary-btn">Save new password</button>
+            </form>
+            <button type="button" id="backToLoginBtn" class="secondary-btn">Back to login</button>
+            <div id="resetError" class="login-error"></div>
+        </div>
+    </div>
+
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
             <div class="brand">
@@ -654,13 +692,6 @@
                 <label for="signupPassword">Password</label>
                 <input id="signupPassword" type="password" minlength="8" required />
                 <button type="submit" class="primary-btn">Sign up</button>
-            </form>
-            <form id="resetPasswordForm" class="hidden">
-                <label for="resetCurrentPass">Current password</label>
-                <input id="resetCurrentPass" type="password" required />
-                <label for="resetNewPass">New password</label>
-                <input id="resetNewPass" type="password" minlength="8" required />
-                <button type="submit" class="primary-btn">Save new password</button>
             </form>
             <div id="loginError" class="login-error"></div>
             <div class="login-note">Use the username and password you registered with.</div>
@@ -695,6 +726,7 @@
                 <div>
                     <button type="button" id="historyBtn">History</button>
                     <button type="button" id="changePasswordBtn">Change password</button>
+                    <button type="button" id="logoutBtn">Logout</button>
                     <button type="button" id="newChatBtn">New chat</button>
                 </div>
             </div>
@@ -729,17 +761,18 @@
                     </div>
 
                     <div class="composer">
-                        <div class="composer-tools">
-                            <label class="upload-label" for="imageInput">Attach photo
-                                <input id="imageInput" type="file" accept="image/*" />
-                            </label>
+                        <div class="composer-tools" style="display: flex; align-items: center; gap: 15px;">
                             <label><input id="autocorrectToggle" type="checkbox" checked /> Autocorrect</label>
-                            <span id="uploadStatus">Ready for a photo</span>
+                            <label for="languageSelect" style="font-weight: 600; margin-left: 10px;">Language:</label>
+                            <select id="languageSelect" style="padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; cursor: pointer;">
+                                <option value="english">English</option>
+                                <option value="telugu">తెలుగు (Telugu)</option>
+                            </select>
                         </div>
-                        <img id="imagePreview" class="image-preview" alt="Selected health image preview" />
-                        <div class="composer-row">
+                        <div class="composer-row" style="display: flex; gap: 8px; align-items: stretch;">
                             <textarea id="messageInput" placeholder="Type a disease name or health question here..."
                                 aria-label="Message input"></textarea>
+                            <button id="voiceBtn" class="voice-btn" type="button" style="border: 1px solid var(--border); border-radius: 16px; background: white; cursor: pointer; padding: 0 16px; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.2s;" title="Record Voice">🎙️</button>
                             <button id="sendBtn" class="send-btn" type="button">Ask AI</button>
                         </div>
                         <div class="composer-foot">
@@ -773,17 +806,14 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const statusText = document.getElementById('statusText');
-        const imageInput = document.getElementById('imageInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const uploadStatus = document.getElementById('uploadStatus');
         const autocorrectToggle = document.getElementById('autocorrectToggle');
+        const languageSelect = document.getElementById('languageSelect');
+        const voiceBtn = document.getElementById('voiceBtn');
         const assistantView = document.getElementById('assistantView');
         const infoView = document.getElementById('infoView');
         const infoTitle = document.getElementById('infoTitle');
         const infoCopy = document.getElementById('infoCopy');
         const infoList = document.getElementById('infoList');
-        let selectedImageData = '';
-        let selectedImageId = '';
         const conversationStorageKey = 'healthguardConversationV2';
         localStorage.removeItem('healthguardConversation');
         localStorage.removeItem('healthguardActiveDisease');
@@ -823,29 +853,31 @@
 
         function getInformationView(viewName) {
             const labels = { prevention: 'Preventive care', symptoms: 'Symptoms review', safety: 'Safety notes' };
+            const isTelugu = languageSelect.value === 'telugu';
+            
             if (!activeDiseaseDetails) {
                 return {
-                    title: labels[viewName],
-                    copy: 'Start a disease conversation in Health assistant to load information for that condition.',
-                    items: [`Ask about a disease first to see its specific ${labels[viewName].toLowerCase()} guidance.`]
+                    title: isTelugu ? 'సమాచారం లేదు' : labels[viewName],
+                    copy: isTelugu ? 'ఈ పరిస్థితికి సంబంధించిన సమాచారాన్ని లోడ్ చేయడానికి మొదట ఒక వ్యాధి గురించి చాట్ చేయండి.' : 'Start a disease conversation in Health assistant to load information for that condition.',
+                    items: [isTelugu ? 'నిర్దిష్ట నివారణ మార్గదర్శకాలను చూడటానికి మొదట ఒక వ్యాధి గురించి అడగండి.' : `Ask about a disease first to see its specific ${labels[viewName].toLowerCase()} guidance.`]
                 };
             }
 
             const diseaseName = activeDiseaseDetails.name || activeDisease;
             const details = {
                 prevention: {
-                    title: `${diseaseName}: Preventive care`,
-                    copy: `Prevention guidance for ${diseaseName}.`,
+                    title: isTelugu ? `${diseaseName}: నివారణ చర్యలు` : `${diseaseName}: Preventive care`,
+                    copy: isTelugu ? `${diseaseName} కొరకు నివారణ మార్గదర్శకాలు.` : `Prevention guidance for ${diseaseName}.`,
                     items: activeDiseaseDetails.prevention || []
                 },
                 symptoms: {
-                    title: `${diseaseName}: Symptoms`,
-                    copy: `Common symptoms associated with ${diseaseName}. These do not confirm a diagnosis.`,
+                    title: isTelugu ? `${diseaseName}: లక్షణాలు` : `${diseaseName}: Symptoms`,
+                    copy: isTelugu ? `${diseaseName} కు సంబంధించిన సాధారణ లక్షణాలు. ఇవి రోగ నిర్ధారణను ధృవీకరించవు.` : `Common symptoms associated with ${diseaseName}. These do not confirm a diagnosis.`,
                     items: activeDiseaseDetails.symptoms || []
                 },
                 safety: {
-                    title: `${diseaseName}: Safety notes`,
-                    copy: `Warning signs that need prompt professional attention for ${diseaseName}.`,
+                    title: isTelugu ? `${diseaseName}: భద్రతా సూచనలు` : `${diseaseName}: Safety notes`,
+                    copy: isTelugu ? `${diseaseName} కోసం తక్షణ వైద్య సహాయం అవసరమయ్యే హెచ్చరిక సంకేతాలు.` : `Warning signs that need prompt professional attention for ${diseaseName}.`,
                     items: activeDiseaseDetails.warning_signs || []
                 }
             };
@@ -1016,9 +1048,90 @@
             messageInput.focus();
             activeDisease = '';
             activeDiseaseDetails = null;
-            selectedImageId = '';
             localStorage.removeItem(conversationStorageKey);
             document.querySelector('[data-view="assistant"]').click();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('healthguardToken');
+                await fetch('/logout', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                localStorage.removeItem('healthguardToken');
+                localStorage.removeItem(conversationStorageKey);
+                
+                activeDisease = '';
+                activeDiseaseDetails = null;
+                conversation = [];
+                
+                chat.innerHTML = `
+                    <div class="message bot">
+                        <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                        Hello! I can help with public-health questions, symptom awareness, and safe next steps. Ask me about dengue, malaria, covid, typhoid, cholera, or other disease details.
+                    </div>
+                `;
+                
+                hideApp();
+            }
+        });
+
+        // ================================================
+        // VOICE RECORDER & SPEECH-TO-TEXT
+        // ================================================
+        let recognition = null;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                voiceBtn.classList.add('recording');
+                voiceBtn.textContent = '🛑';
+                statusText.textContent = 'Listening...';
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                voiceBtn.textContent = '🎙️';
+                statusText.textContent = 'Ready';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = (messageInput.value + ' ' + transcript).trim();
+                messageInput.focus();
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                statusText.textContent = 'Error recording';
+            };
+        } else {
+            voiceBtn.style.display = 'none';
+        }
+
+        voiceBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                const selectedLang = languageSelect.value;
+                recognition.lang = selectedLang === 'telugu' ? 'te-IN' : 'en-US';
+                recognition.start();
+            }
         });
 
         document.getElementById('historyBtn').addEventListener('click', () => {
@@ -1038,37 +1151,6 @@
             infoView.classList.remove('hidden');
         });
 
-        imageInput.addEventListener('change', () => {
-            const file = imageInput.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                selectedImageData = reader.result;
-                imagePreview.src = selectedImageData;
-                imagePreview.style.display = 'block';
-                uploadStatus.textContent = file.name;
-            };
-            reader.readAsDataURL(file);
-
-            const formData = new FormData();
-            formData.append('image', file);
-            fetch('/upload-image', { method: 'POST', body: formData })
-                .then(async (response) => {
-                    const data = await readApiResponse(response);
-                    if (!response.ok) throw new Error(data.detail || 'Upload failed');
-                    selectedImageId = data.image_id;
-                    uploadStatus.textContent = `${data.filename} uploaded`;
-                    appendMessage(
-                        'HealthGuard AI',
-                        `Photo analysis:\n${data.analysis || data.message}\n\nThis is educational information only and is not a diagnosis.`,
-                        'bot'
-                    );
-                })
-                .catch((error) => {
-                    selectedImageId = '';
-                    uploadStatus.textContent = error.message || 'Photo upload failed';
-                });
-        });
 
         function escapeHtml(value) {
             return String(value)
@@ -1139,9 +1221,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message,
-                        image_data: selectedImageData || null,
-                        image_id: selectedImageId || null,
-                        context_disease: activeDisease || null
+                        image_data: null,
+                        image_id: null,
+                        context_disease: activeDisease || null,
+                        language: languageSelect.value,
+                        history: conversation.slice(0, -1)
                     })
                 });
 
@@ -1171,11 +1255,6 @@
 
                 appendMetaBoxes(data);
                 recordMessage('HealthGuard AI', data.answer || 'No answer returned.', 'bot');
-                selectedImageData = '';
-                selectedImageId = '';
-                imageInput.value = '';
-                imagePreview.style.display = 'none';
-                uploadStatus.textContent = 'Ready for a photo';
                 chat.scrollTop = chat.scrollHeight;
                 statusText.textContent = 'Complete';
             } catch (error) {

@@ -45,6 +45,7 @@ IMPORTANT RULES:
 7. If serious or emergency symptoms are present, recommend professional
    medical attention.
 8. Do not replace advice from a qualified healthcare professional.
+9. Always respond in the language specified in the user prompt (e.g., English or Telugu).
 """
 
 
@@ -54,7 +55,8 @@ IMPORTANT RULES:
 
 def fallback_response(
     user_query: str,
-    rag_context
+    rag_context,
+    language: str = "english"
 ):
 
     # --------------------------------------------------------
@@ -107,16 +109,22 @@ def fallback_response(
     # --------------------------------------------------------
 
     if not answer:
-
-        return (
-            "I could not find enough relevant information "
-            "in the HealthGuard knowledge base to answer "
-            "this question safely.\n\n"
-            "Please consult a qualified healthcare professional "
-            "for medical advice.\n\n"
-            "⚠️ This information is for general educational "
-            "purposes and is not a medical diagnosis."
-        )
+        if language == "telugu":
+            return (
+                "ఈ ప్రశ్నకి సురక్షితంగా సమాధానం ఇవ్వడానికి హెల్త్‌గార్డ్ నాలెడ్జ్ బేస్‌లో తగినంత సమాచారం లభించలేదు.\n\n"
+                "వైద్య సలహా కోసం దయచేసి అర్హత కలిగిన ఆరోగ్య నిపుణుడిని సంప్రదించండి.\n\n"
+                "⚠️ ఈ సమాచారం సాధారణ విద్యా ప్రయోజనాల కోసం మాత్రమే మరియు ఇది వైద్య నిర్ధారణ కాదు."
+            )
+        else:
+            return (
+                "I could not find enough relevant information "
+                "in the HealthGuard knowledge base to answer "
+                "this question safely.\n\n"
+                "Please consult a qualified healthcare professional "
+                "for medical advice.\n\n"
+                "⚠️ This information is for general educational "
+                "purposes and is not a medical diagnosis."
+            )
 
 
     # --------------------------------------------------------
@@ -158,16 +166,25 @@ def fallback_response(
     # Final fallback response
     # --------------------------------------------------------
 
-    return (
-        "Based on the HealthGuard knowledge base:\n\n"
-        f"{answer}\n\n"
-        "⚠️ Health Information Notice:\n"
-        "This response provides general educational health "
-        "information. It is not a medical diagnosis and should "
-        "not replace advice from a qualified healthcare professional.\n\n"
-        "If your symptoms are severe, rapidly worsening, or you "
-        "are experiencing an emergency, seek professional medical care."
-    )
+    if language == "telugu":
+        return (
+            "హెల్త్‌గార్డ్ నాలెడ్జ్ బేస్ ఆధారంగా:\n\n"
+            f"{answer}\n\n"
+            "⚠️ ఆరోగ్య సమాచార నోటీసు:\n"
+            "ఈ ప్రతిస్పందన సాధారణ విద్యా సమాచారాన్ని మాత్రమే అందిస్తుంది. ఇది వైద్య నిర్ధారణ కాదు మరియు అర్హత కలిగిన ఆరోగ్య నిపుణుల సలహాను భర్తీ చేయకూడదు.\n\n"
+            "మీ లక్షణాలు తీవ్రంగా ఉంటే, వేగంగా క్షీణిస్తుంటే లేదా మీకు అత్యవసర పరిస్థితి ఎదురైతే, తక్షణమే వృత్తిపరమైన వైద్య సంరక్షణను కోరండి."
+        )
+    else:
+        return (
+            "Based on the HealthGuard knowledge base:\n\n"
+            f"{answer}\n\n"
+            "⚠️ Health Information Notice:\n"
+            "This response provides general educational health "
+            "information. It is not a medical diagnosis and should "
+            "not replace advice from a qualified healthcare professional.\n\n"
+            "If your symptoms are severe, rapidly worsening, or you "
+            "are experiencing an emergency, seek professional medical care."
+        )
 
 
 # ============================================================
@@ -176,7 +193,9 @@ def fallback_response(
 
 def generate_health_response(
     user_query: str,
-    rag_context
+    rag_context,
+    language: str = "english",
+    history: list = None
 ):
 
     # --------------------------------------------------------
@@ -211,13 +230,36 @@ def generate_health_response(
 
         return fallback_response(
             user_query,
-            rag_context
+            rag_context,
+            language
         )
 
 
     # --------------------------------------------------------
-    # Create AI prompt
+    # Create AI prompt & messages list
     # --------------------------------------------------------
+
+    input_messages = []
+
+    if rag_context:
+        input_messages.append({
+            "role": "user",
+            "content": f"Here is the retrieved HealthGuard medical information to ground our conversation:\n\n{rag_context}"
+        })
+        input_messages.append({
+            "role": "assistant",
+            "content": "Thank you. I will use this HealthGuard medical information as my primary source to answer your questions safely and concisely."
+        })
+
+    if history:
+        for turn in history:
+            role = "user" if turn.get("type") == "user" else "assistant"
+            content = turn.get("message", "")
+            if content:
+                input_messages.append({
+                    "role": role,
+                    "content": content
+                })
 
     prompt = f"""
 User question:
@@ -225,12 +267,7 @@ User question:
 {user_query}
 
 
-Retrieved HealthGuard medical information:
-
-{rag_context}
-
-
-Answer the user's question using the retrieved
+Answer the user's question in the {language} language using the retrieved
 HealthGuard information.
 
 Requirements:
@@ -243,7 +280,13 @@ Requirements:
   clearly say so.
 - Keep the answer concise and understandable.
 - Include appropriate safety guidance.
+- IMPORTANT: You MUST generate your entire response in the {language} language. If the selected language is 'telugu', you must write your response in the Telugu script (తెలుగు).
 """
+
+    input_messages.append({
+        "role": "user",
+        "content": prompt
+    })
 
 
     # --------------------------------------------------------
@@ -258,7 +301,7 @@ Requirements:
 
             instructions=SYSTEM_INSTRUCTION,
 
-            input=prompt
+            input=input_messages
         )
 
 
@@ -281,7 +324,8 @@ Requirements:
 
             return fallback_response(
                 user_query,
-                rag_context
+                rag_context,
+                language
             )
 
 
@@ -305,7 +349,8 @@ Requirements:
 
         return fallback_response(
             user_query,
-            rag_context
+            rag_context,
+            language
         )
 
 
@@ -321,7 +366,8 @@ Requirements:
 
         return fallback_response(
             user_query,
-            rag_context
+            rag_context,
+            language
         )
 
 
@@ -337,7 +383,8 @@ Requirements:
 
         return fallback_response(
             user_query,
-            rag_context
+            rag_context,
+            language
         )
 
 
@@ -353,5 +400,6 @@ Requirements:
 
         return fallback_response(
             user_query,
-            rag_context
+            rag_context,
+            language
         )
