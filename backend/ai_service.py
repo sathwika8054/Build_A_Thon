@@ -389,10 +389,6 @@ Requirements:
         )
 
 
-    # --------------------------------------------------------
-    # Unexpected error
-    # --------------------------------------------------------
-
     except Exception as error:
 
         print(
@@ -404,3 +400,81 @@ Requirements:
             rag_context,
             language
         )
+
+
+# ============================================================
+# CHATBOT MEDICAL CONSULTATION INSTRUCTIONS
+# ============================================================
+
+CHATBOT_CONSULTATION_INSTRUCTION = """
+You are a helpful, professional clinical pre-consultation chatbot acting like a doctor performing an initial consultation.
+
+Your goal is to interview the user about their health concerns and symptoms step-by-step.
+
+IMPORTANT CONVERSATIONAL RULES:
+1. Ask exactly ONE medically relevant follow-up question at a time. Do NOT list multiple questions at once.
+2. Proactively follow up on symptoms mentioned (e.g., if they have a fever, ask: "Since when have you had the fever?", then: "What is your temperature?", then: "Do you have chills, sore throat, or body pain?").
+3. Do not rush to give advice. Keep asking intelligent, relevant follow-up questions one by one until you have collected sufficient information (at least 3-4 turns of questions if symptoms are described).
+4. Once you have collected enough information, summarize all the collected symptoms clearly before offering general educational guidance.
+
+SAFETY RULES:
+- Never diagnose any disease or state a final diagnosis.
+- Never prescribe any medications or suggest specific dosages.
+- Recommend consulting a healthcare professional, especially if symptoms are serious.
+- Explain all medical information in simple, clear, layperson language.
+- Always respond in the language requested by the user (English or Telugu script).
+"""
+
+def generate_chatbot_consultation_response(
+    user_query: str,
+    history: list = None,
+    language: str = "english"
+):
+    if not (OPENAI_API_KEY and client):
+        if language == "telugu":
+            return (
+                "ఈ ప్రతిస్పందనను విజయవంతంగా పూర్తి చేయడానికి తగినంత సర్వర్ కనెక్టివిటీ సమాచారం లభించలేదు.\n\n"
+                "వైద్య సలహా కోసం దయచేసి అర్హత కలిగిన ఆరోగ్య నిపుణుడిని సంప్రదించండి."
+            )
+        else:
+            return (
+                "I'm sorry, I cannot perform the clinical consultation right now due to server configuration issues.\n\n"
+                "Please consult a qualified healthcare professional for medical advice."
+            )
+
+    input_messages = []
+
+    if history:
+        for turn in history:
+            role = "user" if turn.get("type") == "user" else "assistant"
+            content = turn.get("message", "")
+            if content:
+                input_messages.append({
+                    "role": role,
+                    "content": content
+                })
+
+    prompt = f"""
+User response:
+{user_query}
+
+Respond in the {language} language. Follow the clinical instruction strictly. Ask only one question at a time.
+"""
+    input_messages.append({
+        "role": "user",
+        "content": prompt
+    })
+
+    try:
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            instructions=CHATBOT_CONSULTATION_INSTRUCTION,
+            input=input_messages
+        )
+        return response.output_text
+    except Exception as e:
+        print("Error in chatbot consultation generation:", e)
+        if language == "telugu":
+            return "క్షమించండి, మీ అభ్యర్థనను ప్రాసెస్ చేయడంలో లోపం సంభవించింది."
+        else:
+            return "Sorry, an error occurred while processing your request."

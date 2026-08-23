@@ -855,6 +855,46 @@
         .chatbot-send-btn:hover {
             background: #1d4ed8;
         }
+
+        /* TYPING INDICATOR STYLES */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            border-bottom-left-radius: 2px;
+            align-self: flex-start;
+            max-width: 80%;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background-color: #64748b;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+            } 
+            40% { 
+                transform: scale(1.0);
+            }
+        }
     </style>
 </head>
 
@@ -1682,14 +1722,14 @@
             chatbotInput.disabled = true;
 
             const chatbotLoading = document.createElement('div');
-            chatbotLoading.className = 'chatbot-msg bot';
-            chatbotLoading.innerHTML = 'Thinking...';
+            chatbotLoading.className = 'typing-indicator';
+            chatbotLoading.innerHTML = '<span></span><span></span><span></span>';
             chatbotMessages.appendChild(chatbotLoading);
             chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
 
             try {
                 const token = localStorage.getItem('healthguardToken');
-                const response = await fetch('/chat', {
+                const response = await fetch('/chatbot', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',

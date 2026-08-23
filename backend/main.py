@@ -63,7 +63,10 @@ from medical_nlp import (
 
 from rag import build_rag_context
 
-from ai_service import generate_health_response
+from ai_service import (
+    generate_health_response,
+    generate_chatbot_consultation_response
+)
 
 # --------------------------------
 # Image analysis
@@ -178,6 +181,12 @@ class ChatRequest(BaseModel):
     message: str
     image_id: str | None = None
     image_data: str | None = None
+    language: str | None = "english"
+    history: list | None = None
+
+
+class ChatbotRequest(BaseModel):
+    message: str
     language: str | None = "english"
     history: list | None = None
 
@@ -940,3 +949,66 @@ def get_user_chat_history(
             "created_at": item.created_at.isoformat()
         } for item in history
     ]
+
+
+# ================================================
+# CLINICAL CHATBOT CONSULTATION ENDPOINT
+# ================================================
+
+@app.post("/chatbot")
+def chatbot(
+    request: ChatbotRequest,
+    authorization: str | None = Header(None),
+    db: Session = Depends(get_db)
+):
+    user_message = request.message.strip()
+    language = request.language or "english"
+
+    if not user_message:
+        return {"answer": "Please enter a health question or symptom."}
+
+    # Translate Telugu user message to English for backend checks if needed
+    processed_message = user_message
+    if language == "telugu":
+        from ai_service import OPENAI_API_KEY, client
+        if OPENAI_API_KEY and client:
+            try:
+                translation_response = client.responses.create(
+                    model="gpt-4.1-mini",
+                    instructions="You are a translation assistant. Translate the user query from Telugu to English. Output only the translated English text, nothing else.",
+                    input=f"Translate: {user_message}"
+                )
+                translated_text = translation_response.output_text.strip()
+                if translated_text:
+                    processed_message = translated_text
+            except Exception as e:
+                print("Translation error in /chatbot:", e)
+
+    # Generate chatbot medical consultation response
+    answer = generate_chatbot_consultation_response(
+        user_query=user_message,
+        history=request.history,
+        language=language
+    )
+
+    # Save to chat history table if authenticated
+    user_id = None
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("user_id")
+            if user_id:
+                chat_record = ChatHistory(
+                    user_id=user_id,
+                    question=user_message,
+                    answer=answer
+                )
+                db.add(chat_record)
+                db.commit()
+        except Exception as db_err:
+            print("Failed to save chatbot history to database:", db_err)
+
+    return {
+        "answer": answer
+    }
