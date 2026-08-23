@@ -649,22 +649,41 @@
         }
 
         .chatbot-trigger {
-            display: none !important;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .chatbot-trigger:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.6);
         }
 
         .chatbot-window {
-            position: relative;
-            width: 100%;
-            height: 600px;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 420px;
+            height: 580px;
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(226, 232, 240, 0.8);
             border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-top: 20px;
         }
 
         .chatbot-window.hidden {
@@ -853,7 +872,8 @@
         }
 
         .chatbot-window.expanded {
-            height: 780px !important;
+            width: min(550px, 95vw) !important;
+            height: min(750px, 85vh) !important;
         }
 
         /* TYPING INDICATOR STYLES */
@@ -1008,37 +1028,36 @@
                         data-prompt="Give me details about typhoid symptoms and prevention.">Typhoid</button>
                 </div>
 
-                <div id="chatbotWindow" class="chatbot-window">
-                    <div class="chatbot-header">
-                        <div class="chatbot-title">
-                            <span class="chatbot-status-dot"></span>
-                            HealthGuard AI Bot
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <button id="chatbotHistoryBtn" class="chatbot-new-chat-btn" title="View History">History</button>
-                            <button id="chatbotNewChatBtn" class="chatbot-new-chat-btn" title="New Chat">New Chat</button>
-                            <button id="chatbotSizeBtn" class="chatbot-new-chat-btn" title="Toggle Size">⛶</button>
+                <section class="chat-panel" aria-live="polite">
+                    <div id="chat" class="chat-window">
+                        <div class="message bot">
+                            <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                            Hello! I can help with public-health questions, symptom awareness, and safe next steps. Ask
+                            me about dengue, malaria, covid, typhoid, cholera, or other disease details.
                         </div>
                     </div>
-                    <div id="chatbotMessages" class="chatbot-messages-area">
-                        <div class="chatbot-msg bot">
-                            Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
-                        </div>
-                    </div>
-                    <div class="chatbot-composer">
-                        <div class="chatbot-tools">
-                            <select id="chatbotLanguageSelect">
+
+                    <div class="composer">
+                        <div class="composer-tools" style="display: flex; align-items: center; gap: 15px;">
+                            <label><input id="autocorrectToggle" type="checkbox" checked /> Autocorrect</label>
+                            <label for="languageSelect" style="font-weight: 600; margin-left: 10px;">Language:</label>
+                            <select id="languageSelect" style="padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; cursor: pointer;">
                                 <option value="english">English</option>
                                 <option value="telugu">తెలుగు (Telugu)</option>
                             </select>
                         </div>
-                        <div class="chatbot-input-row">
-                            <input id="chatbotInput" type="text" placeholder="Ask me about a disease..." aria-label="Chatbot input" />
-                            <button id="chatbotVoiceBtn" class="chatbot-voice-btn" type="button" title="Record Voice">🎙️</button>
-                            <button id="chatbotSendBtn" class="chatbot-send-btn" type="button">➔</button>
+                        <div class="composer-row" style="display: flex; gap: 8px; align-items: stretch;">
+                            <textarea id="messageInput" placeholder="Type a disease name or health question here..."
+                                aria-label="Message input"></textarea>
+                            <button id="voiceBtn" class="voice-btn" type="button" style="border: 1px solid var(--border); border-radius: 16px; background: white; cursor: pointer; padding: 0 16px; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.2s;" title="Record Voice">🎙️</button>
+                            <button id="sendBtn" class="send-btn" type="button">Ask AI</button>
+                        </div>
+                        <div class="composer-foot">
+                            <span>Educational guidance only</span>
+                            <span id="statusText">Ready</span>
                         </div>
                     </div>
-                </div>
+                </section>
             </section>
 
             <section id="infoView" class="chat-panel hidden" aria-live="polite">
@@ -1051,6 +1070,43 @@
         </main>
     </div>
 
+    <!-- FLOATING CHATBOT WIDGET HTML -->
+    <div id="chatbotWidget" class="chatbot-widget hidden">
+        <button id="chatbotTrigger" class="chatbot-trigger" title="Open HealthGuard Bot">💬</button>
+        <div id="chatbotWindow" class="chatbot-window hidden">
+            <div class="chatbot-header">
+                <div class="chatbot-title">
+                    <span class="chatbot-status-dot"></span>
+                    HealthGuard AI Bot
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button id="chatbotHistoryBtn" class="chatbot-new-chat-btn" title="View History">History</button>
+                    <button id="chatbotNewChatBtn" class="chatbot-new-chat-btn" title="New Chat">New Chat</button>
+                    <button id="chatbotSizeBtn" class="chatbot-new-chat-btn" title="Toggle Size">⛶</button>
+                    <button id="chatbotClose" class="chatbot-close-btn">&times;</button>
+                </div>
+            </div>
+            <div id="chatbotMessages" class="chatbot-messages-area">
+                <div class="chatbot-msg bot">
+                    Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
+                </div>
+            </div>
+            <div class="chatbot-composer">
+                <div class="chatbot-tools">
+                    <select id="chatbotLanguageSelect">
+                        <option value="english">English</option>
+                        <option value="telugu">తెలుగు (Telugu)</option>
+                    </select>
+                </div>
+                <div class="chatbot-input-row">
+                    <input id="chatbotInput" type="text" placeholder="Ask me about a disease..." aria-label="Chatbot input" />
+                    <button id="chatbotVoiceBtn" class="chatbot-voice-btn" type="button" title="Record Voice">🎙️</button>
+                    <button id="chatbotSendBtn" class="chatbot-send-btn" type="button">➔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const loginScreen = document.getElementById('loginScreen');
         const appScreen = document.getElementById('appScreen');
@@ -1061,13 +1117,13 @@
         const resetPasswordForm = document.getElementById('resetPasswordForm');
         const signupBtn = document.getElementById('signupBtn');
         const signupForm = document.getElementById('signupForm');
-        const chat = document.getElementById('chatbotMessages');
-        const messageInput = document.getElementById('chatbotInput');
-        const sendBtn = document.getElementById('chatbotSendBtn');
-        const statusText = { textContent: '' };
-        const autocorrectToggle = { checked: true };
-        const languageSelect = document.getElementById('chatbotLanguageSelect');
-        const voiceBtn = document.getElementById('chatbotVoiceBtn');
+        const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusText = document.getElementById('statusText');
+        const autocorrectToggle = document.getElementById('autocorrectToggle');
+        const languageSelect = document.getElementById('languageSelect');
+        const voiceBtn = document.getElementById('voiceBtn');
         const assistantView = document.getElementById('assistantView');
         const infoView = document.getElementById('infoView');
         const infoTitle = document.getElementById('infoTitle');
@@ -1167,6 +1223,7 @@
         function showApp() {
             loginScreen.classList.add('hidden');
             appScreen.classList.remove('hidden');
+            document.getElementById('chatbotWidget').classList.remove('hidden');
             loadChatbotHistory();
             loadMainChatHistory();
             messageInput.focus();
@@ -1175,6 +1232,8 @@
         function hideApp() {
             loginScreen.classList.remove('hidden');
             appScreen.classList.add('hidden');
+            document.getElementById('chatbotWidget').classList.add('hidden');
+            document.getElementById('chatbotWindow').classList.add('hidden');
         }
 
         async function readApiResponse(response) {
@@ -1327,8 +1386,9 @@
 
         document.getElementById('newChatBtn').addEventListener('click', () => {
             chat.innerHTML = `
-                <div class="chatbot-msg bot">
-                    Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
+                <div class="message bot">
+                    <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                    New session started. Ask me about symptoms, prevention, or safe self-care steps.
                 </div>
             `;
             messageInput.value = '';
@@ -1360,8 +1420,9 @@
                 conversation = [];
                 
                 chat.innerHTML = `
-                    <div class="chatbot-msg bot">
-                        Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
+                    <div class="message bot">
+                        <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                        Hello! I can help with public-health questions, symptom awareness, and safe next steps. Ask me about dengue, malaria, covid, typhoid, cholera, or other disease details.
                     </div>
                 `;
                 
@@ -1673,14 +1734,30 @@
         }
 
         // ================================================
-        // EMBEDDED CHATBOT WIDGET LOGIC
+        // FLOATING CHATBOT WIDGET LOGIC
         // ================================================
+        const chatbotWidget = document.getElementById('chatbotWidget');
+        const chatbotTrigger = document.getElementById('chatbotTrigger');
         const chatbotWindow = document.getElementById('chatbotWindow');
-        const chatbotMessages = chat;
-        const chatbotInput = messageInput;
-        const chatbotSendBtn = sendBtn;
-        const chatbotLanguageSelect = languageSelect;
-        const chatbotVoiceBtn = voiceBtn;
+        const chatbotClose = document.getElementById('chatbotClose');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotSendBtn = document.getElementById('chatbotSendBtn');
+        const chatbotLanguageSelect = document.getElementById('chatbotLanguageSelect');
+        const chatbotVoiceBtn = document.getElementById('chatbotVoiceBtn');
+
+        // Toggle visibility
+        chatbotTrigger.addEventListener('click', () => {
+            chatbotWindow.classList.toggle('hidden');
+            if (!chatbotWindow.classList.contains('hidden')) {
+                chatbotInput.focus();
+                loadChatbotHistory();
+            }
+        });
+
+        chatbotClose.addEventListener('click', () => {
+            chatbotWindow.classList.add('hidden');
+        });
 
         const chatbotNewChatBtn = document.getElementById('chatbotNewChatBtn');
         chatbotNewChatBtn.addEventListener('click', () => {
