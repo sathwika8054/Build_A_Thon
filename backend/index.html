@@ -1199,6 +1199,7 @@
             appScreen.classList.remove('hidden');
             document.getElementById('chatbotWidget').classList.remove('hidden');
             loadChatbotHistory();
+            loadMainChatHistory();
             messageInput.focus();
         }
 
@@ -1625,6 +1626,57 @@
                 chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
             } catch (error) {
                 console.error('Failed to load chat history:', error);
+            }
+        }
+
+        async function loadMainChatHistory() {
+            try {
+                const token = localStorage.getItem('healthguardToken');
+                if (!token) return;
+
+                const response = await fetch('/chat-history', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) return;
+
+                const historyData = await response.json();
+
+                chat.innerHTML = `
+                    <div class="message bot">
+                        <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                        Welcome to HealthGuard AI! Ask me about public health concerns, symptoms, prevention, or safety guidelines.
+                    </div>
+                `;
+
+                conversation = [];
+
+                historyData.reverse().forEach(item => {
+                    conversation.push({ type: 'user', message: item.question });
+                    conversation.push({ type: 'bot', message: item.answer });
+
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'message user';
+                    userDiv.innerHTML = `
+                        <div class="message-header">You</div>
+                        ${escapeHtml(item.question).replace(/\n/g, '<br>')}
+                    `;
+                    chat.appendChild(userDiv);
+
+                    const botDiv = document.createElement('div');
+                    botDiv.className = 'message bot';
+                    botDiv.innerHTML = `
+                        <div class="message-header"><span class="dot"></span> HealthGuard AI</div>
+                        ${escapeHtml(item.answer).replace(/\n/g, '<br>')}
+                    `;
+                    chat.appendChild(botDiv);
+                });
+
+                localStorage.setItem(conversationStorageKey, JSON.stringify(conversation));
+                chat.scrollTop = chat.scrollHeight;
+            } catch (error) {
+                console.error('Failed to load main chat history:', error);
             }
         }
 
