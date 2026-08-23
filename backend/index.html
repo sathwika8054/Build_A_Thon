@@ -1085,6 +1085,7 @@
     <script>
         const loginScreen = document.getElementById('loginScreen');
         const appScreen = document.getElementById('appScreen');
+        const resetScreen = document.getElementById('resetScreen');
         const loginForm = document.getElementById('loginForm');
         const loginError = document.getElementById('loginError');
         const resetPasswordBtn = document.getElementById('resetPasswordBtn');
@@ -1251,16 +1252,25 @@
         loginForm.addEventListener('submit', loginUser);
 
         resetPasswordBtn.addEventListener('click', () => {
-            resetPasswordForm.classList.toggle('hidden');
-            resetPasswordBtn.textContent = resetPasswordForm.classList.contains('hidden') ? 'Reset password' : 'Cancel reset';
+            loginScreen.classList.add('hidden');
+            resetScreen.classList.remove('hidden');
+            document.getElementById('resetError').textContent = '';
+        });
+
+        const backToLoginBtn = document.getElementById('backToLoginBtn');
+        backToLoginBtn.addEventListener('click', () => {
+            resetScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
         });
 
         resetPasswordForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const username = document.getElementById('loginUser').value.trim();
+            const username = document.getElementById('resetUser').value.trim();
             const currentPassword = document.getElementById('resetCurrentPass').value;
             const newPassword = document.getElementById('resetNewPass').value;
-            await changePassword(username, currentPassword, newPassword, loginError);
+            const resetErrorMsg = document.getElementById('resetError');
+            resetErrorMsg.textContent = '';
+            await changePassword(username, currentPassword, newPassword, resetErrorMsg);
         });
 
         signupBtn.addEventListener('click', () => {
