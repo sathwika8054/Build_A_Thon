@@ -906,15 +906,15 @@
                 <span>HealthGuard AI</span>
             </div>
             <h2>Reset password</h2>
-            <p>Update your password securely using your current credentials.</p>
+            <p>Update your password securely using your registered email.</p>
             <form id="resetPasswordForm">
-                <label for="resetUser">Username or email</label>
-                <input id="resetUser" type="text" required />
-                <label for="resetCurrentPass">Current password</label>
-                <input id="resetCurrentPass" type="password" required />
+                <label for="resetUser">Username</label>
+                <input id="resetUser" type="text" placeholder="Enter username" required />
+                <label for="resetEmail">Registered email</label>
+                <input id="resetEmail" type="email" placeholder="Enter registered email" required />
                 <label for="resetNewPass">New password</label>
-                <input id="resetNewPass" type="password" minlength="8" required />
-                <button type="submit" class="primary-btn">Save new password</button>
+                <input id="resetNewPass" type="password" placeholder="Min. 8 characters" minlength="8" required />
+                <button type="submit" class="primary-btn">Reset password</button>
             </form>
             <button type="button" id="backToLoginBtn" class="secondary-btn">Back to login</button>
             <div id="resetError" class="login-error"></div>
@@ -1266,11 +1266,11 @@
         resetPasswordForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const username = document.getElementById('resetUser').value.trim();
-            const currentPassword = document.getElementById('resetCurrentPass').value;
+            const email = document.getElementById('resetEmail').value.trim();
             const newPassword = document.getElementById('resetNewPass').value;
             const resetErrorMsg = document.getElementById('resetError');
             resetErrorMsg.textContent = '';
-            await changePassword(username, currentPassword, newPassword, resetErrorMsg);
+            await resetPassword(username, email, newPassword, resetErrorMsg);
         });
 
         signupBtn.addEventListener('click', () => {
@@ -1314,6 +1314,24 @@
                 });
                 const data = await readApiResponse(response);
                 if (!response.ok) throw new Error(data.detail || 'Password change failed');
+                messageElement.textContent = data.message;
+                messageElement.style.color = 'var(--success-text)';
+                resetPasswordForm.reset();
+            } catch (error) {
+                messageElement.textContent = error.message;
+                messageElement.style.color = 'var(--danger-text)';
+            }
+        }
+
+        async function resetPassword(username, email, newPassword, messageElement) {
+            try {
+                const response = await fetch('/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, new_password: newPassword })
+                });
+                const data = await readApiResponse(response);
+                if (!response.ok) throw new Error(data.detail || 'Password reset failed');
                 messageElement.textContent = data.message;
                 messageElement.style.color = 'var(--success-text)';
                 resetPasswordForm.reset();

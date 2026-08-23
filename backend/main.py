@@ -202,6 +202,12 @@ class PasswordChangeRequest(BaseModel):
     new_password: str
 
 
+class PasswordResetRequest(BaseModel):
+    username: str
+    email: str
+    new_password: str
+
+
 # ================================================
 # ROOT ENDPOINT
 # ================================================
@@ -435,6 +441,34 @@ def change_password(
     user.hashed_password = password_hash.hash(request.new_password)
     db.commit()
     return {"success": True, "message": "Password changed successfully"}
+
+
+@app.post("/reset-password")
+def reset_password(
+    request: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    user = (
+        db.query(User)
+        .filter(
+            (User.username == request.username.strip()) |
+            (User.email == request.username.strip())
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.email.lower() != request.email.strip().lower():
+        raise HTTPException(status_code=400, detail="Invalid registered email address")
+
+    if len(request.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
+
+    user.hashed_password = password_hash.hash(request.new_password)
+    db.commit()
+    return {"success": True, "message": "Password reset successfully. You can now log in."}
 
 
 # ================================================
