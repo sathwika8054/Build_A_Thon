@@ -871,6 +871,11 @@
             background: #1d4ed8;
         }
 
+        .chatbot-window.expanded {
+            width: min(450px, 95vw) !important;
+            height: min(650px, 85vh) !important;
+        }
+
         /* TYPING INDICATOR STYLES */
         .typing-indicator {
             display: flex;
@@ -1074,8 +1079,10 @@
                     <span class="chatbot-status-dot"></span>
                     HealthGuard AI Bot
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button id="chatbotHistoryBtn" class="chatbot-new-chat-btn" title="View History">History</button>
                     <button id="chatbotNewChatBtn" class="chatbot-new-chat-btn" title="New Chat">New Chat</button>
+                    <button id="chatbotSizeBtn" class="chatbot-new-chat-btn" title="Toggle Size">⛶</button>
                     <button id="chatbotClose" class="chatbot-close-btn">&times;</button>
                 </div>
             </div>
@@ -1765,6 +1772,58 @@
             
             activeDisease = null;
             activeDiseaseDetails = null;
+        });
+
+        // Chatbot Widget Maximize Toggle
+        const chatbotSizeBtn = document.getElementById('chatbotSizeBtn');
+        chatbotSizeBtn.addEventListener('click', () => {
+            chatbotWindow.classList.toggle('expanded');
+        });
+
+        // Chatbot Widget History View Toggle
+        const chatbotHistoryBtn = document.getElementById('chatbotHistoryBtn');
+        let chatbotInHistoryView = false;
+        
+        chatbotHistoryBtn.addEventListener('click', () => {
+            chatbotInHistoryView = !chatbotInHistoryView;
+            if (chatbotInHistoryView) {
+                chatbotHistoryBtn.textContent = 'Chat';
+                chatbotHistoryBtn.title = 'Back to Chat';
+                
+                const items = conversation.filter(item => item.type === 'user').slice(-10).reverse();
+                chatbotMessages.innerHTML = `
+                    <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 10px; color: #1e293b;">
+                        Consultation History
+                    </div>
+                    <ul class="chatbot-history-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                        ${items.map((item, index) => `
+                            <li>
+                                <button class="chatbot-history-item" type="button" data-history-index="${index}" style="width: 100%; text-align: left; padding: 8px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #334155;">
+                                    ${escapeHtml(item.message)}
+                                </button>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    ${items.length === 0 ? '<div style="padding: 20px; text-align: center; color: #64748b; font-size: 0.85rem;">No saved questions yet.</div>' : ''}
+                `;
+                
+                chatbotMessages.querySelectorAll('.chatbot-history-item').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const qText = items[Number(button.dataset.historyIndex)].message;
+                        chatbotInHistoryView = false;
+                        chatbotHistoryBtn.textContent = 'History';
+                        chatbotHistoryBtn.title = 'View History';
+                        
+                        chatbotInput.value = qText;
+                        chatbotInput.focus();
+                        loadChatbotHistory();
+                    });
+                });
+            } else {
+                chatbotHistoryBtn.textContent = 'History';
+                chatbotHistoryBtn.title = 'View History';
+                loadChatbotHistory();
+            }
         });
 
         // Speech recognition for Chatbot
