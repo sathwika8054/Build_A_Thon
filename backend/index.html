@@ -1010,6 +1010,38 @@
         </main>
     </div>
 
+    <!-- FLOATING CHATBOT WIDGET HTML -->
+    <div id="chatbotWidget" class="chatbot-widget hidden">
+        <button id="chatbotTrigger" class="chatbot-trigger" title="Open HealthGuard Bot">💬</button>
+        <div id="chatbotWindow" class="chatbot-window hidden">
+            <div class="chatbot-header">
+                <div class="chatbot-title">
+                    <span class="chatbot-status-dot"></span>
+                    HealthGuard AI Bot
+                </div>
+                <button id="chatbotClose" class="chatbot-close-btn">&times;</button>
+            </div>
+            <div id="chatbotMessages" class="chatbot-messages-area">
+                <div class="chatbot-msg bot">
+                    Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
+                </div>
+            </div>
+            <div class="chatbot-composer">
+                <div class="chatbot-tools">
+                    <select id="chatbotLanguageSelect">
+                        <option value="english">English</option>
+                        <option value="telugu">తెలుగు (Telugu)</option>
+                    </select>
+                </div>
+                <div class="chatbot-input-row">
+                    <input id="chatbotInput" type="text" placeholder="Ask me about a disease..." aria-label="Chatbot input" />
+                    <button id="chatbotVoiceBtn" class="chatbot-voice-btn" type="button" title="Record Voice">🎙️</button>
+                    <button id="chatbotSendBtn" class="chatbot-send-btn" type="button">➔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const loginScreen = document.getElementById('loginScreen');
         const appScreen = document.getElementById('appScreen');
@@ -1680,38 +1712,6 @@
         });
 
     </script>
-
-    <!-- FLOATING CHATBOT WIDGET HTML -->
-    <div id="chatbotWidget" class="chatbot-widget hidden">
-        <button id="chatbotTrigger" class="chatbot-trigger" title="Open HealthGuard Bot">💬</button>
-        <div id="chatbotWindow" class="chatbot-window hidden">
-            <div class="chatbot-header">
-                <div class="chatbot-title">
-                    <span class="chatbot-status-dot"></span>
-                    HealthGuard AI Bot
-                </div>
-                <button id="chatbotClose" class="chatbot-close-btn">&times;</button>
-            </div>
-            <div id="chatbotMessages" class="chatbot-messages-area">
-                <div class="chatbot-msg bot">
-                    Hello! I am your HealthGuard chatbot assistant. Ask me any public-health questions!
-                </div>
-            </div>
-            <div class="chatbot-composer">
-                <div class="chatbot-tools">
-                    <select id="chatbotLanguageSelect">
-                        <option value="english">English</option>
-                        <option value="telugu">తెలుగు (Telugu)</option>
-                    </select>
-                </div>
-                <div class="chatbot-input-row">
-                    <input id="chatbotInput" type="text" placeholder="Ask me about a disease..." aria-label="Chatbot input" />
-                    <button id="chatbotVoiceBtn" class="chatbot-voice-btn" type="button" title="Record Voice">🎙️</button>
-                    <button id="chatbotSendBtn" class="chatbot-send-btn" type="button">➔</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 
 </html>
